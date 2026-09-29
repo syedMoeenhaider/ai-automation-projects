@@ -1,19 +1,42 @@
 # Webhook → Slack Notification Automation
 
-Turn any webhook event into an instant, conditional Slack alert.
+<p>
+  <img src="https://img.shields.io/badge/n8n-Workflow-EA4B71?style=flat-square&logo=n8n&logoColor=white" />
+  <img src="https://img.shields.io/badge/AI-Powered-412991?style=flat-square&logo=openai&logoColor=white" />
+  <img src="https://img.shields.io/badge/Category-Alerting-blue?style=flat-square" />
+</p>
 
-## ⚙️ How it works
+> Turn any webhook event into an instant, conditional Slack alert.
+
+## ✨ Features
+
+- 🔗 Works with webhooks from any service
+- 🎯 Conditional filtering — only important events notify
+- 💬 Instant formatted Slack alerts
+- ⚡ Lightweight 3-node setup
+
+## 🔄 How it works
+
+```mermaid
+flowchart LR
+    A[🔗 Webhook Event] --> B{Condition?}
+    B -->|Match| C[💬 Slack Alert]
+    B -->|No| D[🔇 Ignore]
+```
 
 1. A **Webhook node** receives incoming events (test or production URL).
 2. An **IF node** filters/conditions which events deserve a notification.
 3. Matching events are pushed to **Slack** as a formatted message.
 
-## 🔑 Requirements
+## 🧰 Requirements
 
-- n8n
-- Slack credential
+| Requirement | Purpose |
+|-------------|---------|
+| n8n | Workflow automation |
+| Slack | Notifications |
+| Any webhook source | Event input |
 
-## 🧩 Setup
+## 🚀 Setup
 
 1. Import `workflow.json` into n8n.
 2. Connect your **Slack** credential and choose the target channel.
@@ -22,7 +45,9 @@ Turn any webhook event into an instant, conditional Slack alert.
 
 ## 📁 Files
 
-- `workflow.json` — ready-to-import n8n workflow (**Workflows → Import from File**)
-- `README.md` — this guide
+| File | Description |
+|------|-------------|
+| `workflow.json` | Ready-to-import n8n workflow (**Workflows → Import from File**) |
+| `README.md` | This guide |
 
-> ⚠️ Credentials are never exported — reconnect your own after import.
+> ⚠️ n8n exports never include credentials — reconnect your own after import.

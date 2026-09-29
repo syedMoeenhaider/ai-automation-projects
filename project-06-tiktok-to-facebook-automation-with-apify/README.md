@@ -1,22 +1,46 @@
 # TikTok → Facebook Automation (Apify)
 
-Scrape TikTok content with Apify and republish it to Facebook automatically via the Graph API.
+<p>
+  <img src="https://img.shields.io/badge/n8n-Workflow-EA4B71?style=flat-square&logo=n8n&logoColor=white" />
+  <img src="https://img.shields.io/badge/AI-Powered-412991?style=flat-square&logo=openai&logoColor=white" />
+  <img src="https://img.shields.io/badge/Category-Cross_Posting-blue?style=flat-square" />
+</p>
 
-## ⚙️ How it works
+> Scrape TikTok content with Apify and republish it to Facebook automatically via the Graph API.
+
+## ✨ Features
+
+- 🎵 TikTok content scraping via Apify actor
+- 🧹 Code-node transformation & filtering
+- 📘 Direct publishing to Facebook via Graph API
+- 📊 Google Sheets tracking of processed items
+
+## 🔄 How it works
+
+```mermaid
+flowchart TD
+    A[▶️ Manual Trigger] --> B[⚙️ Apify: TikTok Scraper]
+    B --> C[📦 Dataset]
+    C --> D[🧹 Transform & Filter]
+    D --> E[📘 FB Graph API: Publish]
+    D --> F[📊 Sheets: Track]
+```
 
 1. The **Apify TikTok Scraper** actor collects trending/post data.
 2. A **Code node** transforms and filters the dataset items.
 3. An **HTTP Request** publishes the content to Facebook through the **Graph API**.
 4. A **Google Sheet** tracks what's been processed.
 
-## 🔑 Requirements
+## 🧰 Requirements
 
-- n8n
-- Apify account + credential
-- Facebook Page + Graph API token
-- Google Sheets credential
+| Requirement | Purpose |
+|-------------|---------|
+| n8n | Workflow automation |
+| Apify | TikTok scraping actor |
+| Facebook Graph API | Publishing |
+| Google Sheets | Tracking |
 
-## 🧩 Setup
+## 🚀 Setup
 
 1. Import `workflow.json` into n8n.
 2. Connect **Apify** and configure the TikTok scraper actor input.
@@ -25,7 +49,9 @@ Scrape TikTok content with Apify and republish it to Facebook automatically via 
 
 ## 📁 Files
 
-- `workflow.json` — ready-to-import n8n workflow (**Workflows → Import from File**)
-- `README.md` — this guide
+| File | Description |
+|------|-------------|
+| `workflow.json` | Ready-to-import n8n workflow (**Workflows → Import from File**) |
+| `README.md` | This guide |
 
-> ⚠️ Credentials are never exported — reconnect your own after import.
+> ⚠️ n8n exports never include credentials — reconnect your own after import.

@@ -1,8 +1,34 @@
 # AI Lead Qualification Automation
 
-Score inbound leads HOT / WARM / COLD with GPT-4.1-mini, route them, log to Sheets and auto-send a personalized reply.
+<p>
+  <img src="https://img.shields.io/badge/n8n-Workflow-EA4B71?style=flat-square&logo=n8n&logoColor=white" />
+  <img src="https://img.shields.io/badge/AI-Powered-412991?style=flat-square&logo=openai&logoColor=white" />
+  <img src="https://img.shields.io/badge/Category-Sales_AI-blue?style=flat-square" />
+</p>
 
-## ⚙️ How it works
+> Score inbound leads HOT / WARM / COLD with GPT-4.1-mini, route them, log to Sheets and auto-send a personalized reply.
+
+## ✨ Features
+
+- 🤖 GPT-4.1-mini scores every lead 1–10 and classifies HOT / WARM / COLD
+- 🔀 Smart routing with tailored handling per tier
+- 📊 Complete lead log in Google Sheets (score, summary, recommended action)
+- 📧 Personalized auto-reply matched to qualification tier
+
+## 🔄 How it works
+
+```mermaid
+flowchart TD
+    A[📝 Lead Form] --> B[🤖 GPT-4.1-mini: Qualify]
+    B --> C{Score}
+    C -->|HOT| D[🔥 Hot Path]
+    C -->|WARM| E[🌤️ Warm Path]
+    C -->|COLD| F[❄️ Cold Path]
+    D --> G[📊 Log to Sheets]
+    E --> G
+    F --> G
+    G --> H[📧 Personalized Reply]
+```
 
 1. A **Lead Form** captures name, email, company, service, budget, timeline and project description.
 2. An **HTTP call to OpenAI** (`gpt-4.1-mini`) classifies each lead as **HOT / WARM / COLD** with a 1–10 score, a summary and a recommended action.
@@ -10,14 +36,16 @@ Score inbound leads HOT / WARM / COLD with GPT-4.1-mini, route them, log to Shee
 4. Every lead is appended to **Google Sheets** with its score, status and AI summary.
 5. **Gmail** sends a personalized reply written for that lead's qualification tier.
 
-## 🔑 Requirements
+## 🧰 Requirements
 
-- n8n
-- OpenAI API credential
-- Google Sheets credential
-- Gmail credential
+| Requirement | Purpose |
+|-------------|---------|
+| n8n | Workflow automation |
+| OpenAI API | GPT-4.1-mini lead scoring |
+| Google Sheets | Lead log |
+| Gmail | Personalized replies |
 
-## 🧩 Setup
+## 🚀 Setup
 
 1. Import `workflow.json` into n8n.
 2. In **OpenAI - Qualify Lead**, select your OpenAI API credential.
@@ -26,7 +54,9 @@ Score inbound leads HOT / WARM / COLD with GPT-4.1-mini, route them, log to Shee
 
 ## 📁 Files
 
-- `workflow.json` — ready-to-import n8n workflow (**Workflows → Import from File**)
-- `README.md` — this guide
+| File | Description |
+|------|-------------|
+| `workflow.json` | Ready-to-import n8n workflow (**Workflows → Import from File**) |
+| `README.md` | This guide |
 
-> ⚠️ Credentials are never exported — reconnect your own after import.
+> ⚠️ n8n exports never include credentials — reconnect your own after import.

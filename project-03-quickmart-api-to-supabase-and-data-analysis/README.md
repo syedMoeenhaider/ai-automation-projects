@@ -1,8 +1,39 @@
 # QuickMart API → Supabase + Data Analysis
 
-Daily product-data ingestion from a public API into Supabase, with snapshot history, analysis and multi-channel reporting.
+<p>
+  <img src="https://img.shields.io/badge/n8n-Workflow-EA4B71?style=flat-square&logo=n8n&logoColor=white" />
+  <img src="https://img.shields.io/badge/AI-Powered-412991?style=flat-square&logo=openai&logoColor=white" />
+  <img src="https://img.shields.io/badge/Category-Data_Pipeline-blue?style=flat-square" />
+</p>
 
-## ⚙️ How it works
+> Daily product-data ingestion from a public API into Supabase, with snapshot history, analysis and multi-channel reporting.
+
+## ✨ Features
+
+- ⏰ Fully automatic daily 8:00 AM run (+ manual trigger for testing)
+- 🗄️ Supabase snapshot history with duplicate protection
+- 📊 Rich analysis: avg price, ratings, categories, high-value items, trend vs previous day
+- 🔔 Toggleable Gmail / Slack / Google Sheets reporting
+- 🛡️ Safe testing mode — notifications OFF by default
+
+## 🔄 How it works
+
+```mermaid
+flowchart TD
+    A[⏰ Daily 8AM / Manual] --> B[🛒 Fetch Products API]
+    B --> C[🧹 Normalize Data]
+    C --> D[(Supabase: Check Existing)]
+    D --> E{New Rows?}
+    E -->|Yes| F[(Supabase: Insert)]
+    E -->|No| G[⏭️ Skip]
+    F --> H[(Supabase: Read Dataset)]
+    G --> H
+    H --> I[📊 Analyze]
+    I --> J{Outputs?}
+    J --> K[📧 Gmail]
+    J --> L[💬 Slack]
+    J --> M[📊 Sheets Log]
+```
 
 1. **Trigger:** manual run or automatic **daily 8:00 AM** schedule.
 2. **Ingestion:** products are fetched from the Fake Store API and normalized (one item per product, tagged with run ID/date).
@@ -10,13 +41,15 @@ Daily product-data ingestion from a public API into Supabase, with snapshot hist
 4. **Analysis:** runs on data read back from Supabase — total products, high-value (>$50) items, average price, average rating, category breakdown, electronics count, and previous-vs-latest snapshot comparison.
 5. **Distribution:** optional Gmail, Slack and Google Sheets outputs, each toggled in `CONFIG - Settings` (all OFF by default for safe testing).
 
-## 🔑 Requirements
+## 🧰 Requirements
 
-- n8n
-- Supabase project (URL + service-role key)
-- Gmail / Slack / Google Sheets credentials (optional)
+| Requirement | Purpose |
+|-------------|---------|
+| n8n | Workflow automation |
+| Supabase | Postgres snapshots |
+| Gmail / Slack / Google Sheets | Optional reporting (toggleable) |
 
-## 🧩 Setup
+## 🚀 Setup
 
 1. Run the provided `quickmart_supabase_schema.sql` in the Supabase SQL Editor.
 2. Create a **Supabase credential** in n8n (Project URL + service-role key) and assign it to all Supabase nodes.
@@ -26,7 +59,9 @@ Daily product-data ingestion from a public API into Supabase, with snapshot hist
 
 ## 📁 Files
 
-- `workflow.json` — ready-to-import n8n workflow (**Workflows → Import from File**)
-- `README.md` — this guide
+| File | Description |
+|------|-------------|
+| `workflow.json` | Ready-to-import n8n workflow (**Workflows → Import from File**) |
+| `README.md` | This guide |
 
-> ⚠️ Credentials are never exported — reconnect your own after import.
+> ⚠️ n8n exports never include credentials — reconnect your own after import.

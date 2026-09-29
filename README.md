@@ -1,43 +1,59 @@
-# 🤖 AI Automation Projects
+<p align="center">
+  <h1 align="center">🤖 AI Automation Projects</h1>
+  <p align="center"><b>Production-ready n8n workflows supercharged with AI</b> — import, customize, deploy.</p>
+  <p align="center">
+    <img src="https://img.shields.io/badge/n8n-10_Workflows-EA4B71?style=for-the-badge&logo=n8n&logoColor=white" />
+    <img src="https://img.shields.io/badge/OpenAI-GPT_Powered-412991?style=for-the-badge&logo=openai&logoColor=white" />
+    <img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" />
+  </p>
+</p>
 
-A curated collection of **AI-powered automation workflows** built with [n8n](https://n8n.io) — ready to import, customize, and deploy.
+---
 
-Each project lives in its own folder with a ready-to-import `workflow.json` and a dedicated `README.md` explaining what it does, how it works, and how to set it up.
+## ✨ What is this?
+
+A curated collection of **real-world automation projects** built with [n8n](https://n8n.io) and modern AI. From AI lead scoring to fully autonomous content pipelines — every project is documented, ready to import, and built to be extended.
 
 ## 📦 Projects
 
-| # | Project | What it does |
-|---|---------|--------------|
-| 01 | [Form Validation + AI Tag Generator](project-01-form-validation-ai-tag-generator/) | Validate form submissions & auto-generate smart AI tags |
-| 02 | [Contact Form → Google Sheets + Auto Email](project-02-contact-form-to-google-sheets-and-auto-email/) | Capture leads in Sheets & send instant confirmation emails |
-| 03 | [QuickMart API → Supabase + Data Analysis](project-03-quickmart-api-to-supabase-and-data-analysis/) | Daily ingestion, snapshot history, analysis & reporting |
-| 04 | [LinkedIn AI Content Pipeline](project-04-linkedin-ai-content-pipeline/) | AI trend research → writing → human approval → auto-publish |
-| 05 | [Instagram Keyword Search + Data Collection](project-05-instagram-keyword-search-and-data-collection/) | Scrape Instagram posts by keyword via Apify |
-| 06 | [TikTok → Facebook Automation (Apify)](project-06-tiktok-to-facebook-automation-with-apify/) | Scrape TikTok & republish to Facebook via Graph API |
-| 07 | [Webhook → Slack Notifications](project-07-webhook-to-slack-notification-automation/) | Real-time conditional Slack alerts from webhooks |
-| 08 | [TikTok → Facebook Page Automation](project-08-tiktok-to-facebook-page-automation/) | Scheduled discovery, dedupe & auto-posting with AI captions |
-| 09 | [AI Lead Qualification](project-09-ai-lead-qualification-automation/) | Score leads HOT/WARM/COLD with GPT & auto-respond |
-| 10 | [AI Student Acknowledgement + Tracking](project-10-ai-student-acknowledgement-and-status-tracking/) | AI acknowledgement emails with Sheets status tracking |
+| # | Project | Category | Highlights |
+|---|---------|----------|------------|
+| 01 | [Form Validation + AI Tag Generator](project-01-form-validation-ai-tag-generator/) | 📝 Form AI | Auto-validation + AI tag generation |
+| 02 | [Contact Form → Sheets + Auto Email](project-02-contact-form-to-google-sheets-and-auto-email/) | 📇 Lead Capture | Instant lead logging & email replies |
+| 03 | [QuickMart API → Supabase + Analysis](project-03-quickmart-api-to-supabase-and-data-analysis/) | 📊 Data Pipeline | Daily ingestion, dedupe, analytics |
+| 04 | [LinkedIn AI Content Pipeline](project-04-linkedin-ai-content-pipeline/) | ✍️ Content AI | Trends → AI writing → approval → publish |
+| 05 | [Instagram Keyword Search](project-05-instagram-keyword-search-and-data-collection/) | 🔍 Scraping | Apify-powered IG data collection |
+| 06 | [TikTok → Facebook (Apify)](project-06-tiktok-to-facebook-automation-with-apify/) | 🔁 Cross-Posting | Scrape & republish via Graph API |
+| 07 | [Webhook → Slack Alerts](project-07-webhook-to-slack-notification-automation/) | 🔔 Alerting | Real-time conditional notifications |
+| 08 | [TikTok → FB Page Automation](project-08-tiktok-to-facebook-page-automation/) | 🔁 Cross-Posting | Dedupe + AI captions, scheduled |
+| 09 | [AI Lead Qualification](project-09-ai-lead-qualification-automation/) | 💼 Sales AI | HOT/WARM/COLD scoring + auto-reply |
+| 10 | [AI Student Acknowledgement](project-10-ai-student-acknowledgement-and-status-tracking/) | 🎓 EdTech AI | AI emails with status tracking |
 
-## 🚀 How to use
+## 🚀 Quick start
 
-1. Pick a project folder and read its `README.md`.
-2. In n8n, go to **Workflows → Import from File** and select the project's `workflow.json`.
-3. Reconnect credentials (OpenAI, Gmail, Google Sheets, Slack, Supabase, Apify…) as listed in the project README.
-4. Follow the setup steps, run a test, then **activate** the workflow.
+1. 📂 Open a project folder and read its `README.md`
+2. 📥 In n8n: **Workflows → Import from File** → select `workflow.json`
+3. 🔑 Reconnect your credentials (listed in each README)
+4. 🧪 Follow the setup steps, run a test, then **Activate** ▶️
 
-> ⚠️ Exported workflows don't include credentials — you'll always reconnect your own after import.
+> ⚠️ n8n exports never include credentials — you'll always reconnect your own after import.
 
-## 🛠️ Tech stack
+## 🛠️ Built with
 
-- **n8n** — workflow automation
-- **OpenAI (GPT)** — classification, tagging, captions & content generation
-- **Supabase** — Postgres database for snapshots
-- **Google Sheets / Gmail** — logging & notifications
-- **Slack** — team alerts
-- **Apify / RapidAPI** — social-media scraping
-- **Facebook Graph API / LinkedIn API** — auto-publishing
+<p>
+  <img src="https://img.shields.io/badge/n8n-Automation-EA4B71?style=flat-square&logo=n8n&logoColor=white" />
+  <img src="https://img.shields.io/badge/OpenAI-GPT-412991?style=flat-square&logo=openai&logoColor=white" />
+  <img src="https://img.shields.io/badge/Supabase-Postgres-3FCF8E?style=flat-square&logo=supabase&logoColor=white" />
+  <img src="https://img.shields.io/badge/Google_Sheets-34A853?style=flat-square&logo=googlesheets&logoColor=white" />
+  <img src="https://img.shields.io/badge/Gmail-EA4335?style=flat-square&logo=gmail&logoColor=white" />
+  <img src="https://img.shields.io/badge/Slack-4A154B?style=flat-square&logo=slack&logoColor=white" />
+  <img src="https://img.shields.io/badge/Apify-Scraping-00BFFF?style=flat-square" />
+  <img src="https://img.shields.io/badge/Facebook_Graph_API-1877F2?style=flat-square&logo=facebook&logoColor=white" />
+  <img src="https://img.shields.io/badge/LinkedIn_API-0A66C2?style=flat-square&logo=linkedin&logoColor=white" />
+</p>
 
 ## 👤 Author
 
 **Syed Moeen Haider** — AI Automation Engineer
+
+*Building intelligent workflows that save hours every day.* ⚡

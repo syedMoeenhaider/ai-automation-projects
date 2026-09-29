@@ -1,20 +1,40 @@
 # Instagram Keyword Search + Data Collection
 
-Scrape Instagram posts by keyword with Apify and collect the dataset for research or outreach.
+<p>
+  <img src="https://img.shields.io/badge/n8n-Workflow-EA4B71?style=flat-square&logo=n8n&logoColor=white" />
+  <img src="https://img.shields.io/badge/AI-Powered-412991?style=flat-square&logo=openai&logoColor=white" />
+  <img src="https://img.shields.io/badge/Category-Social_Scraping-blue?style=flat-square" />
+</p>
 
-## ⚙️ How it works
+> Scrape Instagram posts by keyword with Apify and collect the dataset for research or outreach.
+
+## ✨ Features
+
+- 🔍 Keyword-driven Instagram scraping via Apify
+- 📊 Keywords managed conveniently in Google Sheets
+- 📦 Structured dataset output, ready for analysis or outreach
+
+## 🔄 How it works
+
+```mermaid
+flowchart LR
+    A[📊 Sheets: Keywords] --> B[⚙️ Apify: IG Scraper]
+    B --> C[📦 Dataset Items]
+```
 
 1. Keywords are read from a **Google Sheet**.
 2. The **Apify Instagram Keyword Search Scraper** actor runs per keyword (up to 6 posts each).
 3. Dataset items are retrieved and ready for downstream processing or export.
 
-## 🔑 Requirements
+## 🧰 Requirements
 
-- n8n
-- Apify account + credential
-- Google Sheets credential
+| Requirement | Purpose |
+|-------------|---------|
+| n8n | Workflow automation |
+| Apify | Instagram scraping actor |
+| Google Sheets | Keyword input |
 
-## 🧩 Setup
+## 🚀 Setup
 
 1. Import `workflow.json` into n8n.
 2. Connect your **Apify** credential and add keywords to the source Google Sheet (column `Search keyword`).
@@ -22,7 +42,9 @@ Scrape Instagram posts by keyword with Apify and collect the dataset for researc
 
 ## 📁 Files
 
-- `workflow.json` — ready-to-import n8n workflow (**Workflows → Import from File**)
-- `README.md` — this guide
+| File | Description |
+|------|-------------|
+| `workflow.json` | Ready-to-import n8n workflow (**Workflows → Import from File**) |
+| `README.md` | This guide |
 
-> ⚠️ Credentials are never exported — reconnect your own after import.
+> ⚠️ n8n exports never include credentials — reconnect your own after import.
