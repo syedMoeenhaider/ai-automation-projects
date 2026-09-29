@@ -1,0 +1,229 @@
+{
+  "name": "Project 06 - TikTok to Facebook Automation with Apify",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -560,
+        16
+      ],
+      "id": "e5aa20fd-65d8-4e85-a22d-59f6632d5f5e",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "actorSource": "store",
+        "actorId": {
+          "__rl": true,
+          "value": "GdWCkxBtKWOsKjdch",
+          "mode": "list",
+          "cachedResultName": "TikTok Scraper (clockworks/tiktok-scraper)",
+          "cachedResultUrl": "https://console.apify.com/actors/GdWCkxBtKWOsKjdch/input"
+        },
+        "customBody": "={\n    \"commentsPerPost\": 0,\n    \"excludePinnedPosts\": false,\n    \"hashtags\": [\n        \"{{ $json.hastags }}\"\n    ],\n    \"maxFollowersPerProfile\": 0,\n    \"maxFollowingPerProfile\": 0,\n    \"maxRepliesPerComment\": 0,\n    \"proxyCountryCode\": \"None\",\n    \"resultsPerPage\": 2,\n    \"scrapeAdditionalAuthorMeta\": false,\n    \"scrapeRelatedSearchWords\": false,\n    \"scrapeRelatedVideos\": false,\n    \"searchQueries\": [\n        \"{{ $json.keyword }}\"\n    ],\n    \"searchSection\": \"/video\",\n    \"shouldDownloadAvatars\": false,\n    \"shouldDownloadCovers\": false,\n    \"shouldDownloadMusicCovers\": false,\n    \"shouldDownloadSlideshowImages\": false,\n    \"shouldDownloadVideos\": false,\n    \"topLevelCommentsPerPost\": 0,\n    \"videoSearchDateFilter\": \"ALL_TIME\",\n    \"videoSearchSorting\": \"MOST_RELEVANT\"\n}",
+        "authentication": "apifyOAuth2Api"
+      },
+      "type": "@apify/n8n-nodes-apify.apify",
+      "typeVersion": 1,
+      "position": [
+        -176,
+        16
+      ],
+      "id": "62c4e373-3414-4931-a22d-8afffd60b1c5",
+      "name": "Run an Actor",
+      "credentials": {
+        "apifyOAuth2Api": {
+          "id": "6BqQr5XfiPVyBqnT",
+          "name": "Apify account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "Datasets",
+        "datasetId": "={{ $json.defaultDatasetId }}",
+        "options": {},
+        "authentication": "apifyOAuth2Api"
+      },
+      "type": "@apify/n8n-nodes-apify.apify",
+      "typeVersion": 1,
+      "position": [
+        32,
+        16
+      ],
+      "id": "e7b81605-6ab6-41c4-ac3e-4435bd7e93ec",
+      "name": "Get dataset items",
+      "credentials": {
+        "apifyOAuth2Api": {
+          "id": "6BqQr5XfiPVyBqnT",
+          "name": "Apify account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "return $input.all().map(item => {\n  return {\n    json: {\n      videoUrl: item.json.videoUrl || item.json.webVideoUrl,\n      caption: item.json.text || item.json.caption || \"\"\n    }\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        240,
+        16
+      ],
+      "id": "93c2cd7c-f5a0-410d-8c8f-03d53cb2de12",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=[https://graph-api.facebook.com/v18.0/61593139140654/videos](https://graph-api.facebook.com/v18.0/61593139140654/videos)",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer EAATQRsLtQkMBSOKXaDw56t5RbjOr2K0T6LZCUnxyEFjZB8IapY7ezZAQuJ4gWFaD8rhl9ZAnMVVVs2V5wmTQI0jgdCFWt7hHX41QWaWAuhP49AgmIMjHLqDIxqSKMkdMi8DONsC91vWrdF7LxfKFK8UYam2PuYQ7dWIeZArujUvySHyOdvTdfkbKWJUaPEW15QYJmnYS6hGvMoxgd8XvKyUZAbZAap2sHA79D9m3UGnaCcZD"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "file_url",
+              "value": "={{ $json.videoUrl }}"
+            },
+            {
+              "name": "description",
+              "value": "={{ $json.caption }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        448,
+        16
+      ],
+      "id": "aa167ce8-3c11-4d81-aed8-6e0ff6af8ecf",
+      "name": "HTTP Request",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "y00y4do6x7bpqYYF",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "15uGVrjIubNik-qQUalDB7OO9LqwZVtuNCmaQJi3Duco",
+          "mode": "list",
+          "cachedResultName": "facabook info",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/15uGVrjIubNik-qQUalDB7OO9LqwZVtuNCmaQJi3Duco/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/15uGVrjIubNik-qQUalDB7OO9LqwZVtuNCmaQJi3Duco/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -336,
+        16
+      ],
+      "id": "41f58ce3-f7e1-4da9-9a14-944b3aa8716d",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "VsAEixjmBi34vUBA",
+          "name": "Google Sheets account 3"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Run an Actor": {
+      "main": [
+        [
+          {
+            "node": "Get dataset items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get dataset items": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Run an Actor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "947c83b1-3b05-4c34-83d9-7993cf995698",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "9acc29c622c87eeb3faef4fbf76ee4f26d8b3d55f5cccccce7a20a3bfc9a3b3d"
+  },
+  "nodeGroups": [],
+  "id": "VpidkBeEayCm3KRx",
+  "tags": []
+}

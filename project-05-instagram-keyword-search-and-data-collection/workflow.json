@@ -1,0 +1,148 @@
+{
+  "name": "Project 05 - Instagram Keyword Search and Data Collection",
+  "nodes": [
+    {
+      "parameters": {
+        "actorId": {
+          "__rl": true,
+          "value": "OQkrGAtl0AfRFKnJr",
+          "mode": "list",
+          "cachedResultName": "Instagram Keyword Search Scraper (crawlerbros/instagram-keyword-search-scraper)",
+          "cachedResultUrl": "https://console.apify.com/actors/OQkrGAtl0AfRFKnJr/input"
+        },
+        "customBody": "={\n  \"keywords\": [\n  \"{{ $json['Search keyword'] }}\"\n  ],\n  \"maxPosts\": 6,\n  \"sessionName\": \"default_session\"\n}",
+        "authentication": "apifyOAuth2Api"
+      },
+      "type": "@apify/n8n-nodes-apify.apify",
+      "typeVersion": 1,
+      "position": [
+        208,
+        0
+      ],
+      "id": "a4e3717c-a441-4215-a482-8fa2b99bf3bb",
+      "name": "Run an Actor",
+      "credentials": {
+        "apifyOAuth2Api": {
+          "id": "6BqQr5XfiPVyBqnT",
+          "name": "Apify account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -288,
+        -32
+      ],
+      "id": "f42fbd09-a6fa-4db3-827a-2cbc3b4d2b0c",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1ml2urD6Myz-ZPcuDLMo4ue-C1sIn-pHL3f_iZbEb6CM",
+          "mode": "list",
+          "cachedResultName": "practice work ",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ml2urD6Myz-ZPcuDLMo4ue-C1sIn-pHL3f_iZbEb6CM/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ml2urD6Myz-ZPcuDLMo4ue-C1sIn-pHL3f_iZbEb6CM/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -80,
+        -32
+      ],
+      "id": "395abe9f-f59a-4619-88e7-a2007eec0fcf",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "VsAEixjmBi34vUBA",
+          "name": "Google Sheets account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "Datasets",
+        "datasetId": "={{ $json.defaultDatasetId }}",
+        "options": {},
+        "authentication": "apifyOAuth2Api"
+      },
+      "type": "@apify/n8n-nodes-apify.apify",
+      "typeVersion": 1,
+      "position": [
+        416,
+        0
+      ],
+      "id": "e17680c9-2294-4b07-b42f-06fbf5a10a8a",
+      "name": "Get dataset items",
+      "credentials": {
+        "apifyOAuth2Api": {
+          "id": "6BqQr5XfiPVyBqnT",
+          "name": "Apify account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Run an Actor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Run an Actor": {
+      "main": [
+        [
+          {
+            "node": "Get dataset items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "b77340b3-a629-4740-a6c6-f6b506ffae63",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "9acc29c622c87eeb3faef4fbf76ee4f26d8b3d55f5cccccce7a20a3bfc9a3b3d"
+  },
+  "nodeGroups": [],
+  "id": "fcecsD2q32rzhHh0",
+  "tags": []
+}
