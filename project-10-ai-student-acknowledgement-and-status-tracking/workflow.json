@@ -1,0 +1,360 @@
+{
+  "name": "Project 03 - AI Student Acknowledgement and Status Tracking",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -1104,
+        -32
+      ],
+      "id": "a9200cac-47d1-4314-9a7c-854c547ed8f3",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1WbdzW9iEzFlGZMwTmfCjWm7xtTTN-X4qvBF_isSpjdA",
+          "mode": "list",
+          "cachedResultName": "cs students info",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1WbdzW9iEzFlGZMwTmfCjWm7xtTTN-X4qvBF_isSpjdA/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 531271791,
+          "mode": "list",
+          "cachedResultName": "Form Responses 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1WbdzW9iEzFlGZMwTmfCjWm7xtTTN-X4qvBF_isSpjdA/edit#gid=531271791"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -896,
+        -32
+      ],
+      "id": "c849fb6f-597c-475f-93c4-ce84b6ed457e",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "VsAEixjmBi34vUBA",
+          "name": "Google Sheets account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "c79b59e3-4897-46a0-8d1e-9febacf44aad",
+              "leftValue": "={{ $json.Status }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "empty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -736,
+        -16
+      ],
+      "id": "2fddcabd-7106-4b3f-99d1-564408a13002",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Dear{{ $json['Full name '] }} , thank you for submitting your form for th{{ $json['  specialization track  '] }}e  specialization. Your submission has been received.",
+        "hasOutputParser": true,
+        "messages": {
+          "messageValues": [
+            {
+              "type": "HumanMessagePromptTemplate",
+              "message": "=Aap ek university assistant hain. Niche diye gaye student ko unke Google Form submission ke hawale se aik polite aur professional reply likhein:\n- full Name: {{ $json['Full name '] }}\n- Student ID: {{ $json['  student ID   '] }}\n- Specialization:{{ $json['  specialization track  '] }}"
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        -512,
+        -32
+      ],
+      "id": "9c07b712-5538-4af9-8cb2-8fc233b8f6a8",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-5-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        -464,
+        176
+      ],
+      "id": "ed923209-2c41-44c5-be55-2ae17aad5f7c",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "sJf0JkiwZxvSLgy1",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Get row(s) in sheet').item.json['  email address  '] }}",
+        "subject": "\"Acknowledgment: Your CS Form Submission\"",
+        "emailType": "text",
+        "message": "={{ $json.text }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        -160,
+        -32
+      ],
+      "id": "cdf47f57-0f02-4b1b-a593-f50c7e44532d",
+      "name": "Send a message",
+      "webhookId": "0010190c-73bd-4328-907f-7334e96bdb48",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "J5SGuz0ndYeYbbeG",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1WbdzW9iEzFlGZMwTmfCjWm7xtTTN-X4qvBF_isSpjdA",
+          "mode": "list",
+          "cachedResultName": "cs students info",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1WbdzW9iEzFlGZMwTmfCjWm7xtTTN-X4qvBF_isSpjdA/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 531271791,
+          "mode": "list",
+          "cachedResultName": "Form Responses 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1WbdzW9iEzFlGZMwTmfCjWm7xtTTN-X4qvBF_isSpjdA/edit#gid=531271791"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Status": "sent",
+            "  email address  ": "={{ $('Get row(s) in sheet').item.json['  email address  '] }}"
+          },
+          "matchingColumns": [
+            "  email address  "
+          ],
+          "schema": [
+            {
+              "id": "Timestamp",
+              "displayName": "Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Full name ",
+              "displayName": "Full name ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "  student ID   ",
+              "displayName": "  student ID   ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "  email address  ",
+              "displayName": "  email address  ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "  Current semester  ",
+              "displayName": "  Current semester  ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "  specialization track  ",
+              "displayName": "  specialization track  ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        48,
+        -32
+      ],
+      "id": "3fe1c67d-80e0-4acd-9fc6-800c1e40196f",
+      "name": "Append or update row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "VsAEixjmBi34vUBA",
+          "name": "Google Sheets account 3"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message": {
+      "main": [
+        [
+          {
+            "node": "Append or update row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "a0024981-b99d-4f75-91cb-da8c17cda2c8",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "9acc29c622c87eeb3faef4fbf76ee4f26d8b3d55f5cccccce7a20a3bfc9a3b3d"
+  },
+  "nodeGroups": [],
+  "id": "1qR9i0k88xpi2jFD",
+  "tags": []
+}

@@ -1,0 +1,770 @@
+{
+  "name": "Project 01 - AI Lead Qualification Automation",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "AI Automation Project Inquiry",
+        "formDescription": "Tell us about your project. Your request will be reviewed and prioritized automatically.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Name",
+              "fieldName": "name",
+              "placeholder": "John Smith",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Email",
+              "fieldName": "email",
+              "fieldType": "email",
+              "placeholder": "john@example.com",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Company",
+              "fieldName": "company",
+              "placeholder": "ABC Company",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Service Required",
+              "fieldName": "service",
+              "placeholder": "e.g. AI lead automation",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Budget (USD)",
+              "fieldName": "budget",
+              "placeholder": "e.g. 1500",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Timeline",
+              "fieldName": "timeline",
+              "placeholder": "e.g. Within 2 weeks",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Project Description",
+              "fieldName": "message",
+              "fieldType": "textarea",
+              "placeholder": "Describe the problem you want to automate...",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {
+          "respondWithOptions": {
+            "values": {
+              "formSubmittedText": "Thank you. Your project inquiry has been received."
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.6,
+      "position": [
+        -1040,
+        0
+      ],
+      "id": "dc22b07a-6bcc-4611-8478-6800d1154b6e",
+      "name": "Lead Form",
+      "webhookId": "a3db6270-cc46-438e-9d73-46c4e118b442"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "8c954bdc-ba47-4caf-b0e2-c0945e4e12db",
+              "name": "name",
+              "value": "={{ $json.name }}",
+              "type": "string"
+            },
+            {
+              "id": "3a5bca6a-f7dd-46df-b2bb-c0ed95e7a32f",
+              "name": "email",
+              "value": "={{ $json.email }}",
+              "type": "string"
+            },
+            {
+              "id": "20681efb-b349-4901-9ee7-d32f60794f24",
+              "name": "company",
+              "value": "={{ $json.company }}",
+              "type": "string"
+            },
+            {
+              "id": "603dfcb8-d70f-40d6-85dd-d09a5a73cb9a",
+              "name": "service",
+              "value": "={{ $json.service }}",
+              "type": "string"
+            },
+            {
+              "id": "0d42085f-88b0-4d9f-898e-bf9b81c05c1c",
+              "name": "budget",
+              "value": "={{ $json.budget }}",
+              "type": "string"
+            },
+            {
+              "id": "0a75fd97-465e-41aa-9136-1bcce72ae82d",
+              "name": "timeline",
+              "value": "={{ $json.timeline }}",
+              "type": "string"
+            },
+            {
+              "id": "6b0e49d6-0888-4fe8-b5cc-ebefeed7c00b",
+              "name": "message",
+              "value": "={{ $json.message }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -800,
+        0
+      ],
+      "id": "66cbfa1b-1221-4d8a-91ae-ab8460d52edd",
+      "name": "Prepare Lead Fields"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "openAiApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ {\n  \"model\": \"gpt-4.1-mini\",\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"You are a B2B sales lead qualification assistant for an AI automation freelancer. Classify each inbound lead as HOT, WARM, or COLD and score it from 1 to 10. HOT means clear business need, realistic budget, clear timeline, and strong purchase intent. WARM means a plausible opportunity but one or more important details are uncertain. COLD means very low intent, unrealistic budget, vague need, or poor fit. Be commercially sensible. Write a short professional reply to the prospect without making promises or inventing facts.\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": `Name: ${$json.name}\nCompany: ${$json.company}\nService required: ${$json.service}\nBudget (USD): ${$json.budget}\nTimeline: ${$json.timeline}\nProject description: ${$json.message}`\n    }\n  ],\n  \"response_format\": {\n    \"type\": \"json_schema\",\n    \"json_schema\": {\n      \"name\": \"lead_qualification\",\n      \"strict\": true,\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"lead_status\": {\n            \"type\": \"string\",\n            \"enum\": [\"HOT\", \"WARM\", \"COLD\"]\n          },\n          \"score\": {\n            \"type\": \"integer\",\n            \"minimum\": 1,\n            \"maximum\": 10\n          },\n          \"summary\": {\n            \"type\": \"string\"\n          },\n          \"recommended_action\": {\n            \"type\": \"string\"\n          },\n          \"email_subject\": {\n            \"type\": \"string\"\n          },\n          \"email_reply\": {\n            \"type\": \"string\"\n          }\n        },\n        \"required\": [\n          \"lead_status\",\n          \"score\",\n          \"summary\",\n          \"recommended_action\",\n          \"email_subject\",\n          \"email_reply\"\n        ],\n        \"additionalProperties\": false\n      }\n    }\n  },\n  \"temperature\": 0.2,\n  \"max_completion_tokens\": 600\n} }}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -560,
+        0
+      ],
+      "id": "52a03ba4-c3f0-4044-880f-e0eeb7d11138",
+      "name": "OpenAI - Qualify Lead"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "8e46aa90-14e5-4195-9597-694c47896719",
+              "name": "lead_status",
+              "value": "={{ JSON.parse($json.choices[0].message.content).lead_status }}",
+              "type": "string"
+            },
+            {
+              "id": "12ed5258-5dd9-4e9b-87f7-e30fa497d94a",
+              "name": "score",
+              "value": "={{ JSON.parse($json.choices[0].message.content).score }}",
+              "type": "number"
+            },
+            {
+              "id": "71001cfd-512c-4d0d-a75d-01bc04be937f",
+              "name": "summary",
+              "value": "={{ JSON.parse($json.choices[0].message.content).summary }}",
+              "type": "string"
+            },
+            {
+              "id": "ba7e9b23-8e1b-4a58-89d9-af3e706bc703",
+              "name": "recommended_action",
+              "value": "={{ JSON.parse($json.choices[0].message.content).recommended_action }}",
+              "type": "string"
+            },
+            {
+              "id": "39e87b8e-9048-4728-a982-6089ababd33c",
+              "name": "email_subject",
+              "value": "={{ JSON.parse($json.choices[0].message.content).email_subject }}",
+              "type": "string"
+            },
+            {
+              "id": "ddad9b18-3f2f-4cd2-b4d3-3ed6b67d9e07",
+              "name": "email_reply",
+              "value": "={{ JSON.parse($json.choices[0].message.content).email_reply }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -320,
+        0
+      ],
+      "id": "7df1d1b1-3e64-4e18-82e2-fbfc9dbb22a9",
+      "name": "Parse AI Result"
+    },
+    {
+      "parameters": {
+        "mode": "expression",
+        "numberOutputs": 3,
+        "output": "={{ $json.lead_status === 'HOT' ? 0 : $json.lead_status === 'WARM' ? 1 : 2 }}"
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -80,
+        0
+      ],
+      "id": "ea2bda2d-b55f-46c1-843e-e8e8ee06a14b",
+      "name": "Route by Lead Status"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "e59a1250-9f79-433e-bce4-7fc82fa22b3a",
+              "name": "route_action",
+              "value": "Contact this lead as soon as possible (target: within 2 hours).",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        160,
+        -160
+      ],
+      "id": "62f6ba56-c907-40dc-9782-79298fb3571a",
+      "name": "HOT Route"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "813b2aa5-ed38-4ddb-baaf-d4ef1391445a",
+              "name": "route_action",
+              "value": "Follow up within 24 hours and clarify missing requirements.",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        160,
+        0
+      ],
+      "id": "ece1b80b-412b-4a20-b01b-c7dee61de61b",
+      "name": "WARM Route"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "e7f93eeb-302d-481e-8b93-0d065eed501c",
+              "name": "route_action",
+              "value": "Send the polite response and place the lead in a low-priority nurture list.",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        160,
+        160
+      ],
+      "id": "094964cc-483c-4093-83f9-10afa67e38bd",
+      "name": "COLD Route"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1df6cee1-d26b-4096-b59f-9c15fcfa5d05",
+              "name": "Timestamp",
+              "value": "={{ $now.toISO() }}",
+              "type": "string"
+            },
+            {
+              "id": "d1650452-13cb-445e-b249-9697dbd21736",
+              "name": "Name",
+              "value": "={{ $('Prepare Lead Fields').first().json.name }}",
+              "type": "string"
+            },
+            {
+              "id": "4b270ac8-76e7-45a1-9a34-f91b4030c9c8",
+              "name": "Email",
+              "value": "={{ $('Prepare Lead Fields').first().json.email }}",
+              "type": "string"
+            },
+            {
+              "id": "f8750526-9763-4d80-9c66-67bfbcc54a7c",
+              "name": "Company",
+              "value": "={{ $('Prepare Lead Fields').first().json.company }}",
+              "type": "string"
+            },
+            {
+              "id": "88f9c532-8fec-4ee9-b1a2-626c3c8c1b51",
+              "name": "Service",
+              "value": "={{ $('Prepare Lead Fields').first().json.service }}",
+              "type": "string"
+            },
+            {
+              "id": "0a3168a0-70b8-4250-bbbf-5423df379576",
+              "name": "Budget",
+              "value": "={{ $('Prepare Lead Fields').first().json.budget }}",
+              "type": "string"
+            },
+            {
+              "id": "8325ec9f-39fd-4a1a-83a9-621434741c42",
+              "name": "Timeline",
+              "value": "={{ $('Prepare Lead Fields').first().json.timeline }}",
+              "type": "string"
+            },
+            {
+              "id": "ae17fd33-e93b-4e95-ad2f-3bd42281afeb",
+              "name": "Project Description",
+              "value": "={{ $('Prepare Lead Fields').first().json.message }}",
+              "type": "string"
+            },
+            {
+              "id": "2fd6bcbd-1e44-4f63-8d24-fb7eaba3e202",
+              "name": "AI Score",
+              "value": "={{ $('Parse AI Result').first().json.score }}",
+              "type": "number"
+            },
+            {
+              "id": "8a5cc751-68e0-463b-abd1-366a13fc440c",
+              "name": "Lead Status",
+              "value": "={{ $('Parse AI Result').first().json.lead_status }}",
+              "type": "string"
+            },
+            {
+              "id": "a999f3f3-16ed-44aa-bf20-003c4ef74f13",
+              "name": "AI Summary",
+              "value": "={{ $('Parse AI Result').first().json.summary }}",
+              "type": "string"
+            },
+            {
+              "id": "80d19547-a825-4d40-831b-6ec092d1b035",
+              "name": "Recommended Action",
+              "value": "={{ $('Parse AI Result').first().json.recommended_action }}",
+              "type": "string"
+            },
+            {
+              "id": "728c7a94-b9ad-4814-abb5-2e606fa0aa2a",
+              "name": "Route Action",
+              "value": "={{ $json.route_action }}",
+              "type": "string"
+            },
+            {
+              "id": "25edaea4-fb8f-4e4b-8375-58b4750a0516",
+              "name": "Email Subject",
+              "value": "={{ $('Parse AI Result').first().json.email_subject }}",
+              "type": "string"
+            },
+            {
+              "id": "c8ea9725-acad-4206-90b0-a693d382dcb1",
+              "name": "Email Reply",
+              "value": "={{ $('Parse AI Result').first().json.email_reply }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        420,
+        0
+      ],
+      "id": "845d8b27-1920-49ac-b50c-cc9d60f2b11d",
+      "name": "Prepare Google Sheet Row"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_ID",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Leads",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Timestamp": "={{ $json.Timestamp }}",
+            "Name": "={{ $json.Name }}",
+            "Email": "={{ $json.Email }}",
+            "Company": "={{ $json.Company }}",
+            "Service": "={{ $json.Service }}",
+            "Budget": "={{ $json.Budget }}",
+            "Timeline": "={{ $json.Timeline }}",
+            "Project Description": "={{ $json['Project Description'] }}",
+            "AI Score": "={{ $json['AI Score'] }}",
+            "Lead Status": "={{ $json['Lead Status'] }}",
+            "AI Summary": "={{ $json['AI Summary'] }}",
+            "Recommended Action": "={{ $json['Recommended Action'] }}",
+            "Route Action": "={{ $json['Route Action'] }}",
+            "Email Subject": "={{ $json['Email Subject'] }}",
+            "Email Reply": "={{ $json['Email Reply'] }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Timestamp",
+              "displayName": "Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Company",
+              "displayName": "Company",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Service",
+              "displayName": "Service",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Budget",
+              "displayName": "Budget",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Timeline",
+              "displayName": "Timeline",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Project Description",
+              "displayName": "Project Description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "AI Score",
+              "displayName": "AI Score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Lead Status",
+              "displayName": "Lead Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "AI Summary",
+              "displayName": "AI Summary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Recommended Action",
+              "displayName": "Recommended Action",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Route Action",
+              "displayName": "Route Action",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Email Subject",
+              "displayName": "Email Subject",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Email Reply",
+              "displayName": "Email Reply",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        680,
+        0
+      ],
+      "id": "f55db0c0-2802-4ff5-b01a-99e9b3e74142",
+      "name": "Append Lead to Google Sheets"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Prepare Lead Fields').first().json.email }}",
+        "subject": "={{ $('Parse AI Result').first().json.email_subject }}",
+        "message": "={{ $('Parse AI Result').first().json.email_reply }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        940,
+        0
+      ],
+      "id": "57b9dd6d-951d-4269-b8af-ef4789ccabc7",
+      "name": "Send Personalized Reply",
+      "webhookId": "31070176-60bd-4bfe-95fe-6f2f2f53aa67"
+    },
+    {
+      "parameters": {
+        "content": "## SETUP AFTER IMPORT\n\n### 1. OpenAI\nOpen **OpenAI - Qualify Lead** and select/create your **OpenAI API credential**.\n\n### 2. Google Sheets\nCreate a spreadsheet with a tab named **Leads** and put these headers in row 1:\n\nTimestamp | Name | Email | Company | Service | Budget | Timeline | Project Description | AI Score | Lead Status | AI Summary | Recommended Action | Route Action | Email Subject | Email Reply\n\nThen open **Append Lead to Google Sheets**, connect Google Sheets, and select your spreadsheet + Leads tab.\n\n### 3. Gmail\nOpen **Send Personalized Reply** and connect your Gmail OAuth2 credential.\n\n### 4. Test\nOpen **Lead Form** → Test Form URL → submit a test lead → inspect every node.\n\n### Important\nKeep the workflow inactive until all credentials and the Google Sheet are configured.",
+        "height": 540,
+        "width": 560
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1040,
+        -660
+      ],
+      "id": "c53e9c5a-1d81-4c63-a97d-8d231a01b598",
+      "name": "Setup Instructions"
+    }
+  ],
+  "connections": {
+    "Lead Form": {
+      "main": [
+        [
+          {
+            "node": "Prepare Lead Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Lead Fields": {
+      "main": [
+        [
+          {
+            "node": "OpenAI - Qualify Lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI - Qualify Lead": {
+      "main": [
+        [
+          {
+            "node": "Parse AI Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse AI Result": {
+      "main": [
+        [
+          {
+            "node": "Route by Lead Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route by Lead Status": {
+      "main": [
+        [
+          {
+            "node": "HOT Route",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "WARM Route",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "COLD Route",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HOT Route": {
+      "main": [
+        [
+          {
+            "node": "Prepare Google Sheet Row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "WARM Route": {
+      "main": [
+        [
+          {
+            "node": "Prepare Google Sheet Row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "COLD Route": {
+      "main": [
+        [
+          {
+            "node": "Prepare Google Sheet Row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Google Sheet Row": {
+      "main": [
+        [
+          {
+            "node": "Append Lead to Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append Lead to Google Sheets": {
+      "main": [
+        [
+          {
+            "node": "Send Personalized Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "93bdeffe-a273-495c-97bd-c83b4940922c",
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "tags": []
+}
