@@ -1,0 +1,912 @@
+{
+  "name": "Project 04 - LinkedIn AI Content Pipeline - Cloud Full + Bonus",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "# PROJECT 04 — LinkedIn AI Content Pipeline (n8n Cloud)\n\nThis workflow implements the assignment core flow + bonus tasks.\n\n## Cloud-friendly design\n- Trend discovery + research: Google News RSS (no SerpAPI key)\n- AI: n8n OpenAI Chat Model (reconnect your n8n-provided/free-credit credential if available)\n- Approval: Gmail **Send and Wait for Approval** with APPROVE / DECLINE buttons\n- Logging: Google Sheets\n- Notifications: Slack\n- Publishing: LinkedIn built-in node\n\n## After import\n1. Open CONFIG - Settings and enter approval email, Google Sheet ID/tab name, Slack channel ID.\n2. Reconnect all 3 OpenAI Chat Model nodes.\n3. Reconnect Gmail, Slack, Google Sheets and LinkedIn credentials.\n4. Create the Google Sheet headers shown in the LOG HEADERS sticky note.\n5. Keep the workflow inactive while testing. Use Manual Trigger first.\n6. Test APPROVE and DECLINE paths separately, then publish/activate.\n\nTimezone: Asia/Karachi. Schedule: every day at 8:00 AM.",
+        "height": 780,
+        "width": 650,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -160,
+        -640
+      ],
+      "id": "6ecdc580-8901-42d1-8302-1576cbbac649",
+      "name": "SETUP - Read Me"
+    },
+    {
+      "parameters": {
+        "content": "# Assignment Bonus Tasks Covered\n\n✅ Task 1 — Improved AI prompts\n✅ Task 2 — Slack success/decline notifications\n✅ Task 3 — Google Sheets post log\n✅ Task 4 — Image idea + alt text in approval email\n✅ Task 5 — Fully automatic human approval using Gmail Send-and-Wait buttons\n✅ Task 6 — Separate AI call prepares Facebook + X versions\n\nNote: Task 5 in the PDF suggests parsing an email reply. This build uses n8n's current native Gmail approval operation, which is more reliable for a cloud demo and automatically resumes the workflow.",
+        "height": 460,
+        "width": 600,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        5040,
+        -640
+      ],
+      "id": "e078a63f-1531-4dd1-ac22-3982592b961f",
+      "name": "BONUS TASK COVERAGE"
+    },
+    {
+      "parameters": {
+        "content": "# Google Sheet Setup\n\nCreate a tab named `LinkedIn_Log` (or change it in CONFIG) and paste these exact headers in row 1:\n\n`timestamp | topic | post_text | hashtags | approval_status | linkedin_urn | image_idea | alt_text | facebook_version | x_version | selected_reason | source_links`\n\nBoth log nodes use Map Automatically, so header spelling must match.",
+        "height": 420,
+        "width": 620,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        5680,
+        -640
+      ],
+      "id": "408d6ae0-b03c-490c-bea0-662e9e589bb7",
+      "name": "LOG HEADERS - Google Sheets"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "b9792673-5017-4214-97e0-22542bc4b375",
+      "name": "Manual Trigger"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 8
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        160
+      ],
+      "id": "a7072d78-2e3e-4aee-b48a-3a562b1a8f36",
+      "name": "Daily 8 AM Trigger"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "05a1e77e-e5a3-4101-b77c-674229c97c5f",
+              "name": "approval_email",
+              "value": "YOUR_EMAIL@gmail.com",
+              "type": "string"
+            },
+            {
+              "id": "cae4efb6-6c47-49de-8dfe-6ea6eae284bc",
+              "name": "trend_topics",
+              "value": "Artificial Intelligence|Digital Marketing|Remote Work|Startup Funding|Cybersecurity",
+              "type": "string"
+            },
+            {
+              "id": "8299abc8-2d88-4bb9-9bd2-fec26126b877",
+              "name": "google_sheet_id",
+              "value": "PASTE_GOOGLE_SHEET_ID",
+              "type": "string"
+            },
+            {
+              "id": "812b1a2b-5dbf-4b81-b894-efe2ca0cd3ad",
+              "name": "google_sheet_name",
+              "value": "LinkedIn_Log",
+              "type": "string"
+            },
+            {
+              "id": "3593caa5-81b0-4e98-b874-290586198f4d",
+              "name": "slack_channel_id",
+              "value": "PASTE_SLACK_CHANNEL_ID",
+              "type": "string"
+            },
+            {
+              "id": "9555ba63-6bd0-40c4-a486-b8e7cb8301c2",
+              "name": "days_for_trends",
+              "value": 7,
+              "type": "number"
+            },
+            {
+              "id": "553dcee0-5990-4005-b5ba-9b52c5b3259a",
+              "name": "days_for_research",
+              "value": 14,
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        240,
+        80
+      ],
+      "id": "9ffaed5e-f7ec-412b-9193-92113e0d03a5",
+      "name": "CONFIG - Settings"
+    },
+    {
+      "parameters": {
+        "jsCode": "const cfg = $json;\nconst topics = String(cfg.trend_topics || '')\n  .split('|')\n  .map(t => t.trim())\n  .filter(Boolean);\n\nconst days = Number(cfg.days_for_trends || 7);\n\nreturn topics.map(topic => {\n  const q = `${topic} when:${days}d`;\n  return {\n    json: {\n      topic,\n      rss_url: `https://news.google.com/rss/search?q=${encodeURIComponent(q)}&hl=en-US&gl=US&ceid=US:en`\n    }\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        80
+      ],
+      "id": "6a1a4d1e-e49b-4e24-bbf6-3a4c3d7c9db2",
+      "name": "Define Trend Topics"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.rss_url }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.1,
+      "position": [
+        720,
+        80
+      ],
+      "id": "b1dfef02-fa9b-44e4-a919-b296cea532f5",
+      "name": "Search Trending Topics"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst seen = new Set();\nconst rows = [];\n\nfor (const item of items) {\n  const j = item.json || {};\n  const title = String(j.title || '').trim();\n  const link = String(j.link || '').trim();\n  const pubDate = String(j.pubDate || j.isoDate || '').trim();\n\n  if (!title) continue;\n  const key = title.toLowerCase();\n  if (seen.has(key)) continue;\n  seen.add(key);\n\n  rows.push({ title, link, pubDate });\n  if (rows.length >= 30) break;\n}\n\nconst trend_results = rows\n  .map((r, i) => `${i + 1}. ${r.title}\\nDate: ${r.pubDate || 'N/A'}\\nSource: ${r.link || 'N/A'}`)\n  .join('\\n\\n');\n\nreturn [{\n  json: {\n    trend_count: rows.length,\n    trend_items: rows,\n    trend_results\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        960,
+        80
+      ],
+      "id": "74edfc48-54a8-4aa1-91e3-bc4f8400c60f",
+      "name": "Format Trend Results"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ `You are a senior LinkedIn content strategist.\n\nGoal: choose ONE timely, credible and useful topic for a professional LinkedIn audience from the current trend results below.\n\nTracked categories:\n${$('CONFIG - Settings').first().json.trend_topics}\n\nCurrent trend results:\n${$json.trend_results}\n\nSelection rules:\n1. Prefer a topic supported by multiple recent headlines, not a one-off story.\n2. Prefer topics with practical business/technology value.\n3. Avoid celebrity gossip, sensationalism, and vague topics.\n4. Do not invent facts not present in the trend results.\n5. Use your memory to avoid repeatedly choosing the same angle across daily runs when a strong alternative exists.\n\nReturn ONLY one valid JSON object, no markdown:\n{\n  \"selected_topic\": \"specific topic\",\n  \"reason\": \"1-2 sentence reason\",\n  \"angle\": \"clear LinkedIn angle\",\n  \"keywords\": [\"keyword1\", \"keyword2\", \"keyword3\"]\n}` }}",
+        "options": {
+          "systemMessage": "You are a rigorous content strategist. Be concise, factual, and return the requested JSON only."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        1200,
+        80
+      ],
+      "id": "e65219e7-33c7-4172-8082-89ff982f7fdb",
+      "name": "AI Agent - Select Topic"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-5-mini",
+          "cachedResultName": "gpt-5-mini",
+          "cachedResultUrl": ""
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        1200,
+        280
+      ],
+      "id": "a94f05ba-6211-4e10-abfe-0c834cb3d63a",
+      "name": "OpenAI Chat Model - Topic"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "linkedin-content-pipeline",
+        "contextWindowLength": 8
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        1400,
+        280
+      ],
+      "id": "956407ce-8640-4b7c-abbf-aa380b6fec00",
+      "name": "Topic Selection Memory"
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = String($json.output ?? $json.text ?? '').trim();\n\nfunction parseObject(text) {\n  let t = text.replace(/^```json\\s*/i, '').replace(/^```\\s*/i, '').replace(/\\s*```$/i, '').trim();\n  try { return JSON.parse(t); } catch (e) {}\n  const start = t.indexOf('{');\n  const end = t.lastIndexOf('}');\n  if (start >= 0 && end > start) {\n    try { return JSON.parse(t.slice(start, end + 1)); } catch (e) {}\n  }\n  return null;\n}\n\nconst obj = parseObject(raw) || {};\nconst selected_topic = String(obj.selected_topic || raw || 'Artificial Intelligence trends').trim();\nconst reason = String(obj.reason || 'Selected from current trend results.').trim();\nconst angle = String(obj.angle || selected_topic).trim();\nconst keywords = Array.isArray(obj.keywords) ? obj.keywords : [];\n\nreturn [{ json: { selected_topic, reason, angle, keywords, raw_selection: raw } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1480,
+        80
+      ],
+      "id": "f69aacfa-9bfc-438c-a189-2f8e09d5cb58",
+      "name": "Parse Selected Topic"
+    },
+    {
+      "parameters": {
+        "jsCode": "const topic = String($json.selected_topic || '').trim();\nconst days = Number($('CONFIG - Settings').first().json.days_for_research || 14);\nconst q = `${topic} statistics analysis business technology when:${days}d`;\n\nreturn [{\n  json: {\n    ...$json,\n    research_url: `https://news.google.com/rss/search?q=${encodeURIComponent(q)}&hl=en-US&gl=US&ceid=US:en`\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1720,
+        80
+      ],
+      "id": "a2b6626d-1029-4a73-97ae-1307da97ce10",
+      "name": "Build Research Query"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.research_url }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.1,
+      "position": [
+        1960,
+        80
+      ],
+      "id": "18e3e6e5-d2f9-4cb4-b723-6e95f8a5cf14",
+      "name": "Research Topic Sources"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst selected = $('Parse Selected Topic').first().json;\nconst seen = new Set();\nconst sources = [];\n\nfor (const item of items) {\n  const j = item.json || {};\n  const title = String(j.title || '').trim();\n  const link = String(j.link || '').trim();\n  const pubDate = String(j.pubDate || j.isoDate || '').trim();\n  if (!title) continue;\n\n  const key = title.toLowerCase();\n  if (seen.has(key)) continue;\n  seen.add(key);\n\n  sources.push({ title, link, pubDate });\n  if (sources.length >= 5) break;\n}\n\nconst source_text = sources\n  .map((s, i) => `Source ${i + 1}: ${s.title}\\nDate: ${s.pubDate || 'N/A'}\\nURL: ${s.link || 'N/A'}`)\n  .join('\\n\\n');\n\nreturn [{\n  json: {\n    selected_topic: selected.selected_topic,\n    reason: selected.reason,\n    angle: selected.angle,\n    sources,\n    source_text,\n    source_links: sources.map(s => s.link).filter(Boolean).join(' | ')\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2200,
+        80
+      ],
+      "id": "84bf52ab-0f6d-4142-a3fb-232a4fb82b8c",
+      "name": "Extract Sources"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ `You are an expert LinkedIn content writer for a technology/business brand.\n\nSelected topic: ${$json.selected_topic}\nChosen angle: ${$json.angle}\n\nResearch sources:\n${$json.source_text}\n\nWrite a professional LinkedIn post using ONLY claims that can reasonably be supported by the supplied source titles/context. If the sources do not support a precise statistic, do not invent one.\n\nRequirements:\n- 150-250 words for the main post text.\n- Start with a strong but non-clickbait hook.\n- Explain 2-4 useful insights for professionals.\n- Friendly, credible, professional tone.\n- End with one thoughtful question or call-to-action.\n- Put hashtags only at the end; use 3-5 relevant hashtags.\n- Also suggest one professional image idea and concise alt text.\n- Avoid fabricated quotes, numbers, or named claims.\n\nReturn ONLY valid JSON, no markdown:\n{\n  \"post_text\": \"150-250 word post without hashtags\",\n  \"hashtags\": \"#Tag1 #Tag2 #Tag3\",\n  \"image_idea\": \"specific visual concept\",\n  \"alt_text\": \"accessible alt text\"\n}` }}",
+        "options": {
+          "systemMessage": "You write polished LinkedIn posts grounded in provided research. Never invent unsupported facts. Return JSON only."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        2440,
+        80
+      ],
+      "id": "6e2c6fa8-1975-4ac5-8361-63d8db9e1b2f",
+      "name": "AI Agent - Write LinkedIn Post"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-5-mini",
+          "cachedResultName": "gpt-5-mini",
+          "cachedResultUrl": ""
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        2440,
+        280
+      ],
+      "id": "2a842265-1f0d-4fef-baec-eb099942d0ca",
+      "name": "OpenAI Chat Model - Writer"
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = String($json.output ?? '').trim();\n\nfunction parseObject(text) {\n  let t = text.replace(/^```json\\s*/i, '').replace(/^```\\s*/i, '').replace(/\\s*```$/i, '').trim();\n  try { return JSON.parse(t); } catch (e) {}\n  const a = t.indexOf('{'), b = t.lastIndexOf('}');\n  if (a >= 0 && b > a) {\n    try { return JSON.parse(t.slice(a, b + 1)); } catch (e) {}\n  }\n  return {};\n}\n\nconst obj = parseObject(raw);\nconst research = $('Extract Sources').first().json;\nconst post_text = String(obj.post_text || raw).trim();\nconst hashtags = String(obj.hashtags || '').trim();\nconst image_idea = String(obj.image_idea || '').trim();\nconst alt_text = String(obj.alt_text || '').trim();\n\nreturn [{\n  json: {\n    topic: research.selected_topic,\n    angle: research.angle,\n    selected_reason: research.reason,\n    post_text,\n    hashtags,\n    linkedin_post: hashtags ? `${post_text}\\n\\n${hashtags}` : post_text,\n    image_idea,\n    alt_text,\n    source_text: research.source_text,\n    source_links: research.source_links,\n    word_count: post_text.split(/\\s+/).filter(Boolean).length\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2720,
+        80
+      ],
+      "id": "e666b19d-26a6-49a2-8277-fab865fa291a",
+      "name": "Parse Post Content"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ `You are a social media editor.\n\nOriginal LinkedIn post:\n${$json.linkedin_post}\n\nCreate TWO adapted versions without changing the core meaning:\n1. Facebook: 80-140 words, conversational and professional.\n2. X/Twitter: maximum 260 characters including hashtags.\n\nDo not add new factual claims.\n\nReturn ONLY valid JSON:\n{\n  \"facebook_version\": \"text\",\n  \"x_version\": \"text\"\n}` }}",
+        "options": {
+          "systemMessage": "Adapt content faithfully across social platforms. Return JSON only."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        2960,
+        80
+      ],
+      "id": "483a012a-108e-48ea-b8ad-d50208d598ec",
+      "name": "AI Agent - Repurpose for Facebook X"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-5-mini",
+          "cachedResultName": "gpt-5-mini",
+          "cachedResultUrl": ""
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        2960,
+        280
+      ],
+      "id": "6d6769d0-6bb7-4905-b992-13a16ae649c5",
+      "name": "OpenAI Chat Model - Repurpose"
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = String($json.output ?? '').trim();\n\nfunction parseObject(text) {\n  let t = text.replace(/^```json\\s*/i, '').replace(/^```\\s*/i, '').replace(/\\s*```$/i, '').trim();\n  try { return JSON.parse(t); } catch (e) {}\n  const a = t.indexOf('{'), b = t.lastIndexOf('}');\n  if (a >= 0 && b > a) {\n    try { return JSON.parse(t.slice(a, b + 1)); } catch (e) {}\n  }\n  return {};\n}\n\nconst obj = parseObject(raw);\nconst p = $('Parse Post Content').first().json;\n\nreturn [{\n  json: {\n    ...p,\n    facebook_version: String(obj.facebook_version || '').trim(),\n    x_version: String(obj.x_version || '').trim()\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3240,
+        80
+      ],
+      "id": "ca4fa062-89fb-4314-85db-1f3085837c4d",
+      "name": "Parse Social Variants"
+    },
+    {
+      "parameters": {
+        "operation": "sendAndWait",
+        "sendTo": "={{ $('CONFIG - Settings').first().json.approval_email }}",
+        "subject": "=LinkedIn Post Approval Needed — {{ $('Parse Post Content').first().json.topic }}",
+        "message": "=<h2>LinkedIn Post Approval Needed</h2>\n<p><strong>Topic:</strong> {{ $('Parse Post Content').first().json.topic }}</p>\n<p><strong>Selected because:</strong> {{ $('Parse Post Content').first().json.selected_reason }}</p>\n<hr>\n<h3>LinkedIn Draft</h3>\n<p style=\"white-space:pre-wrap\">{{ $('Parse Post Content').first().json.linkedin_post }}</p>\n<p><strong>Word count:</strong> {{ $('Parse Post Content').first().json.word_count }}</p>\n<h3>Image Suggestion</h3>\n<p><strong>Idea:</strong> {{ $('Parse Post Content').first().json.image_idea }}</p>\n<p><strong>Alt text:</strong> {{ $('Parse Post Content').first().json.alt_text }}</p>\n<h3>Research Sources</h3>\n<p style=\"white-space:pre-wrap\">{{ $('Parse Post Content').first().json.source_text }}</p>\n<h3>Bonus: Multi-platform Versions</h3>\n<p><strong>Facebook:</strong><br>{{ $json.facebook_version }}</p>\n<p><strong>X/Twitter:</strong><br>{{ $json.x_version }}</p>\n<hr>\n<p>Please choose <strong>APPROVE</strong> to publish on LinkedIn or <strong>DECLINE</strong> to stop publication.</p>",
+        "approvalOptions": {
+          "values": {
+            "approvalType": "double",
+            "approveLabel": "APPROVE",
+            "disapproveLabel": "DECLINE"
+          }
+        },
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        3480,
+        80
+      ],
+      "id": "2877b98a-706f-4fd7-b11f-87beda210d2d",
+      "name": "Send Approval Email - Wait",
+      "webhookId": "b005a08e-961c-46c0-849e-54ecdfda3e21"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "2d683cc6-d660-4733-a54e-5d2cc852567d",
+              "leftValue": "={{ $json.data.approved }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        3720,
+        80
+      ],
+      "id": "ae80210e-5c4c-4a06-8faf-443b8d72af02",
+      "name": "Check Approval"
+    },
+    {
+      "parameters": {
+        "postAs": "person",
+        "text": "={{ $('Parse Post Content').first().json.linkedin_post }}",
+        "shareMediaCategory": "NONE",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.linkedIn",
+      "typeVersion": 1,
+      "position": [
+        3960,
+        -40
+      ],
+      "id": "76df0bb0-6735-4254-81d9-191dd67581c2",
+      "name": "Create LinkedIn Post"
+    },
+    {
+      "parameters": {
+        "jsCode": "const p = $('Parse Post Content').first().json;\nconst s = $('Parse Social Variants').first().json;\n\nreturn [{\n  json: {\n    timestamp: new Date().toISOString(),\n    topic: p.topic,\n    post_text: p.post_text,\n    hashtags: p.hashtags,\n    approval_status: 'APPROVED_PUBLISHED',\n    linkedin_urn: String($json.urn ?? $json.id ?? ''),\n    image_idea: p.image_idea,\n    alt_text: p.alt_text,\n    facebook_version: s.facebook_version,\n    x_version: s.x_version,\n    selected_reason: p.selected_reason,\n    source_links: p.source_links\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4200,
+        -40
+      ],
+      "id": "0574901b-af32-4735-96bc-0e8ece2af808",
+      "name": "Prepare Approved Log"
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "={{ $('CONFIG - Settings').first().json.slack_channel_id }}",
+          "mode": "id"
+        },
+        "text": "=✅ LinkedIn post APPROVED and published.\nTopic: {{ $json.topic }}\nLinkedIn URN: {{ $json.linkedin_urn || 'Returned by LinkedIn node' }}",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        4440,
+        -160
+      ],
+      "id": "8e932db2-1c57-44c7-969d-5824efea73e1",
+      "name": "Slack - Published Success"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $('CONFIG - Settings').first().json.google_sheet_id }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ $('CONFIG - Settings').first().json.google_sheet_name }}",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        4440,
+        40
+      ],
+      "id": "03677974-5c08-454c-94af-baec9e5c7f73",
+      "name": "Append Approved Log"
+    },
+    {
+      "parameters": {
+        "jsCode": "const p = $('Parse Post Content').first().json;\nconst s = $('Parse Social Variants').first().json;\n\nreturn [{\n  json: {\n    timestamp: new Date().toISOString(),\n    topic: p.topic,\n    post_text: p.post_text,\n    hashtags: p.hashtags,\n    approval_status: 'DECLINED',\n    linkedin_urn: '',\n    image_idea: p.image_idea,\n    alt_text: p.alt_text,\n    facebook_version: s.facebook_version,\n    x_version: s.x_version,\n    selected_reason: p.selected_reason,\n    source_links: p.source_links\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3960,
+        240
+      ],
+      "id": "97be9ac2-dbbf-4b66-92b0-d572bfc2891c",
+      "name": "Prepare Declined Log"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('CONFIG - Settings').first().json.approval_email }}",
+        "subject": "=LinkedIn Draft Declined — {{ $json.topic }}",
+        "message": "=The LinkedIn draft for {{ $json.topic }} was declined. No LinkedIn post was published.",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        4200,
+        160
+      ],
+      "id": "9b875658-04d4-4947-9ed4-f7d4e10eddc7",
+      "name": "Gmail - Decline Notification"
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "={{ $('CONFIG - Settings').first().json.slack_channel_id }}",
+          "mode": "id"
+        },
+        "text": "=❌ LinkedIn draft DECLINED.\nTopic: {{ $json.topic }}\nNo post was published.",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        4200,
+        280
+      ],
+      "id": "7e773bd2-59fb-4009-9fd4-bcd2a8981d6d",
+      "name": "Slack - Declined"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $('CONFIG - Settings').first().json.google_sheet_id }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ $('CONFIG - Settings').first().json.google_sheet_name }}",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        4200,
+        400
+      ],
+      "id": "c1172cfe-c213-4027-b0a5-d1cc64db7e58",
+      "name": "Append Declined Log"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "CONFIG - Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Daily 8 AM Trigger": {
+      "main": [
+        [
+          {
+            "node": "CONFIG - Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CONFIG - Settings": {
+      "main": [
+        [
+          {
+            "node": "Define Trend Topics",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Define Trend Topics": {
+      "main": [
+        [
+          {
+            "node": "Search Trending Topics",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search Trending Topics": {
+      "main": [
+        [
+          {
+            "node": "Format Trend Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Trend Results": {
+      "main": [
+        [
+          {
+            "node": "AI Agent - Select Topic",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model - Topic": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent - Select Topic",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Topic Selection Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent - Select Topic",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent - Select Topic": {
+      "main": [
+        [
+          {
+            "node": "Parse Selected Topic",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Selected Topic": {
+      "main": [
+        [
+          {
+            "node": "Build Research Query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Research Query": {
+      "main": [
+        [
+          {
+            "node": "Research Topic Sources",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Research Topic Sources": {
+      "main": [
+        [
+          {
+            "node": "Extract Sources",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Sources": {
+      "main": [
+        [
+          {
+            "node": "AI Agent - Write LinkedIn Post",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model - Writer": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent - Write LinkedIn Post",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent - Write LinkedIn Post": {
+      "main": [
+        [
+          {
+            "node": "Parse Post Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Post Content": {
+      "main": [
+        [
+          {
+            "node": "AI Agent - Repurpose for Facebook X",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model - Repurpose": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent - Repurpose for Facebook X",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent - Repurpose for Facebook X": {
+      "main": [
+        [
+          {
+            "node": "Parse Social Variants",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Social Variants": {
+      "main": [
+        [
+          {
+            "node": "Send Approval Email - Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Approval Email - Wait": {
+      "main": [
+        [
+          {
+            "node": "Check Approval",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Approval": {
+      "main": [
+        [
+          {
+            "node": "Create LinkedIn Post",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Prepare Declined Log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create LinkedIn Post": {
+      "main": [
+        [
+          {
+            "node": "Prepare Approved Log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Approved Log": {
+      "main": [
+        [
+          {
+            "node": "Slack - Published Success",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Append Approved Log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Declined Log": {
+      "main": [
+        [
+          {
+            "node": "Gmail - Decline Notification",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Slack - Declined",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Append Declined Log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Asia/Karachi"
+  },
+  "versionId": "6abbd770-4a0e-425c-b28e-b871c3ac8091",
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "tags": []
+}

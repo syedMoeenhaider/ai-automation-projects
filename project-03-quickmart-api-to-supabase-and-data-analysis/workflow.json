@@ -1,0 +1,736 @@
+{
+  "name": "Project 03 - QuickMart API to Supabase and Data Analysis",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "# PROJECT #03 — QuickMart External Database Integration\n\n**Goal:** Pull product data from a public API, save daily snapshots in Supabase, read the stored dataset back, analyze it inside n8n, and distribute a daily summary.\n\n**Core requirements covered:** API → Supabase → Read-back → Analysis → Gmail/Slack/Sheets.\n\n**Bonus requirements covered:** duplicate protection, daily 8 AM schedule, rating analysis, and historical comparison between snapshots.",
+        "height": 430,
+        "width": 650,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1120,
+        -520
+      ],
+      "id": "c9f798f2-61c1-4ab6-8995-fe2cf93d41d2",
+      "name": "PROJECT 03 - Overview"
+    },
+    {
+      "parameters": {
+        "content": "## Before first run\n\n1. Run the supplied `quickmart_supabase_schema.sql` in Supabase SQL Editor.\n2. In n8n create a **Supabase credential** using your Project URL + server-side secret/service-role key.\n3. Assign that credential to all Supabase nodes.\n4. In `CONFIG - Settings`, replace email/channel/sheet placeholders.\n5. Connect Gmail / Slack / Google Sheets credentials only if you enable those outputs.\n6. Start with Manual Trigger. After testing, publish/activate the workflow for the daily schedule.\n\n### Google Sheet headers (optional)\n`timestamp, snapshot_date, total_products, historical_records, new_records_this_execution, high_value_products, average_price, average_rating, electronics_count, category_breakdown, previous_snapshot_date, previous_snapshot_products, product_count_change`",
+        "height": 520,
+        "width": 650,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1120,
+        -60
+      ],
+      "id": "c25ed960-2edf-4055-ae17-3b554cb5fa91",
+      "name": "SETUP - Read Me"
+    },
+    {
+      "parameters": {
+        "content": "## 1. Trigger + API ingestion\nManual testing and an automatic daily 8:00 AM trigger both enter the same pipeline. Fake Store API products are normalized into one n8n item per product and tagged with a run ID/date.",
+        "height": 250,
+        "width": 980,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -420,
+        -430
+      ],
+      "id": "8e3c48d0-fc6b-4f2f-948e-2f3882b0f617",
+      "name": "SECTION 1 - Ingestion"
+    },
+    {
+      "parameters": {
+        "content": "## 2. Supabase persistence + duplicate guard\nThe workflow reads today's existing rows first, then inserts only missing `(product_id, run_date)` snapshots. This prevents accidental same-day duplicates while still preserving day-to-day history.",
+        "height": 250,
+        "width": 1330,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        640,
+        -430
+      ],
+      "id": "df427b9d-175f-4d67-a3bb-8d19393c7e9a",
+      "name": "SECTION 2 - Database"
+    },
+    {
+      "parameters": {
+        "content": "## 3. Read back + analysis\nAnalysis is performed on data read from Supabase—not directly from the API. It calculates total products, >$50 products, average price, category counts, average rating, electronics count, and previous-vs-latest snapshot comparison.",
+        "height": 250,
+        "width": 850,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2080,
+        -430
+      ],
+      "id": "f097d9df-a3a7-4968-8f1d-93840043ac03",
+      "name": "SECTION 3 - Analysis"
+    },
+    {
+      "parameters": {
+        "content": "## 4. Daily distribution\nThree optional output branches are included: Gmail, Slack, and Google Sheets. Enable each switch in `CONFIG - Settings` after adding the matching credential.",
+        "height": 250,
+        "width": 1350,
+        "color": 2
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        3020,
+        -430
+      ],
+      "id": "bf5e96fc-7494-4b88-a996-21819c435bcf",
+      "name": "SECTION 4 - Distribution"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -360,
+        -40
+      ],
+      "id": "973d84b6-3aca-405f-bf20-a7cc83fdfa33",
+      "name": "Manual Trigger"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 8
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -360,
+        150
+      ],
+      "id": "12f486f2-6544-4fc6-9c05-b0e2957cb652",
+      "name": "Daily 8 AM Trigger"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "55855c0b-dca1-459c-9f46-b6df25e8e429",
+              "name": "company_name",
+              "value": "QuickMart Online Store",
+              "type": "string"
+            },
+            {
+              "id": "01cab7cf-8b39-4ba7-ba33-03316bb281d8",
+              "name": "high_value_threshold",
+              "value": 50,
+              "type": "number"
+            },
+            {
+              "id": "1a09ec08-8e04-43c6-8c7c-dd751386a4ce",
+              "name": "send_gmail",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "58f608f0-48ca-4065-a222-323f17899c84",
+              "name": "email_to",
+              "value": "YOUR_EMAIL@gmail.com",
+              "type": "string"
+            },
+            {
+              "id": "10b8734e-15b5-419d-b16c-fe75f80c41f3",
+              "name": "send_slack",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "5a1ba31f-34cc-4947-aa26-8c61c5046756",
+              "name": "slack_channel_id",
+              "value": "YOUR_SLACK_CHANNEL_ID",
+              "type": "string"
+            },
+            {
+              "id": "f747c56e-b31c-4311-b7c6-6a766b988a21",
+              "name": "log_to_google_sheets",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "8265ff2c-3717-42a1-870c-464f63534c65",
+              "name": "google_sheet_id",
+              "value": "YOUR_GOOGLE_SHEET_ID",
+              "type": "string"
+            },
+            {
+              "id": "a09eecd3-9702-4ab3-9675-402e411d77d3",
+              "name": "google_sheet_name",
+              "value": "SummaryLog",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -120,
+        50
+      ],
+      "id": "7be31266-b96e-4934-bd10-026ded55ee99",
+      "name": "CONFIG - Settings"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://fakestoreapi.com/products",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        140,
+        50
+      ],
+      "id": "b556fd72-cf50-4ac7-9fa4-136a28c6a4df",
+      "name": "Fetch Products API",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
+    },
+    {
+      "parameters": {
+        "jsCode": "const incoming = $input.all();\nlet products = [];\n\nfor (const item of incoming) {\n  const j = item.json;\n  if (Array.isArray(j)) {\n    products.push(...j);\n  } else if (Array.isArray(j?.data)) {\n    products.push(...j.data);\n  } else if (j && typeof j === 'object') {\n    products.push(j);\n  }\n}\n\nconst now = new Date();\nconst fetchedAt = now.toISOString();\nconst runDate = fetchedAt.slice(0, 10);\nconst runId = `quickmart_${fetchedAt.replace(/[:.]/g, '-')}`;\n\nreturn products\n  .filter(p => p && p.id !== undefined)\n  .map(p => ({\n    json: {\n      product_id: Number(p.id),\n      title: String(p.title ?? ''),\n      price: Number(p.price ?? 0),\n      category: String(p.category ?? 'unknown'),\n      description: String(p.description ?? ''),\n      rating_rate: Number(p.rating?.rate ?? 0),\n      rating_count: Number(p.rating?.count ?? 0),\n      fetched_at: fetchedAt,\n      run_id: runId,\n      run_date: runDate\n    }\n  }));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        400,
+        50
+      ],
+      "id": "a632240f-871c-435f-a145-f33d4072b0aa",
+      "name": "Normalize API Products"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "products",
+        "returnAll": true,
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "run_date",
+              "condition": "eq",
+              "keyValue": "={{ $('Normalize API Products').first().json.run_date }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        700,
+        50
+      ],
+      "id": "03d47917-1b71-4e76-95e7-892cdd8c9a25",
+      "name": "Read Existing Today's Snapshots",
+      "alwaysOutputData": true,
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const apiProducts = $('Normalize API Products').all().map(i => i.json);\nconst existingRows = $input.all()\n  .map(i => i.json)\n  .filter(r => r && r.product_id !== undefined && r.product_id !== null);\n\nconst existingKeys = new Set(\n  existingRows.map(r => `${Number(r.product_id)}|${String(r.run_date).slice(0,10)}`)\n);\n\nconst fresh = apiProducts.filter(p => {\n  const key = `${Number(p.product_id)}|${String(p.run_date).slice(0,10)}`;\n  return !existingKeys.has(key);\n});\n\nif (fresh.length === 0) {\n  return [{\n    json: {\n      _no_new: true,\n      run_id: apiProducts[0]?.run_id || '',\n      run_date: apiProducts[0]?.run_date || new Date().toISOString().slice(0,10),\n      skipped_duplicates: apiProducts.length\n    }\n  }];\n}\n\nreturn fresh.map(p => ({\n  json: {\n    ...p,\n    _no_new: false,\n    skipped_duplicates: apiProducts.length - fresh.length\n  }\n}));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        960,
+        50
+      ],
+      "id": "f2c5f8a0-ef5c-48e9-85ee-b94741ce0b27",
+      "name": "Filter New Daily Snapshots"
+    },
+    {
+      "parameters": {
+        "mode": "expression",
+        "numberOutputs": 2,
+        "output": "={{ $json._no_new ? 1 : 0 }}"
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        1210,
+        50
+      ],
+      "id": "63087eda-f878-4d2d-b741-9648a8550118",
+      "name": "New Snapshot Rows?"
+    },
+    {
+      "parameters": {
+        "tableId": "products",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "product_id",
+              "fieldValue": "={{ $json.product_id }}"
+            },
+            {
+              "fieldId": "title",
+              "fieldValue": "={{ $json.title }}"
+            },
+            {
+              "fieldId": "price",
+              "fieldValue": "={{ $json.price }}"
+            },
+            {
+              "fieldId": "category",
+              "fieldValue": "={{ $json.category }}"
+            },
+            {
+              "fieldId": "description",
+              "fieldValue": "={{ $json.description }}"
+            },
+            {
+              "fieldId": "rating_rate",
+              "fieldValue": "={{ $json.rating_rate }}"
+            },
+            {
+              "fieldId": "rating_count",
+              "fieldValue": "={{ $json.rating_count }}"
+            },
+            {
+              "fieldId": "fetched_at",
+              "fieldValue": "={{ $json.fetched_at }}"
+            },
+            {
+              "fieldId": "run_id",
+              "fieldValue": "={{ $json.run_id }}"
+            },
+            {
+              "fieldId": "run_date",
+              "fieldValue": "={{ $json.run_date }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1460,
+        -40
+      ],
+      "id": "ed58fb81-1414-4723-a6d4-3eed1ad60d3c",
+      "name": "Insert New Rows to Supabase"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        1460,
+        150
+      ],
+      "id": "48213168-7237-4a8f-abd2-14f5a8664bf7",
+      "name": "No New Rows - Continue"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "products",
+        "returnAll": true,
+        "filters": {
+          "conditions": []
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1770,
+        50
+      ],
+      "id": "718a8974-7929-4b1c-8975-396f4ff3b8aa",
+      "name": "Read Stored Dataset from Supabase",
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const rows = $input.all()\n  .map(i => i.json)\n  .filter(r => r && r.product_id !== undefined && r.product_id !== null);\n\nif (rows.length === 0) {\n  return [{\n    json: {\n      error: true,\n      summary_text: 'QuickMart analysis could not run because no stored product rows were returned from Supabase.'\n    }\n  }];\n}\n\nconst threshold = Number($('CONFIG - Settings').first().json.high_value_threshold ?? 50);\nconst currentRunId = $('Normalize API Products').first().json.run_id;\nconst currentRunDate = $('Normalize API Products').first().json.run_date;\n\nconst dateGroups = {};\nfor (const r of rows) {\n  const d = String(r.run_date || r.fetched_at || '').slice(0, 10);\n  if (!dateGroups[d]) dateGroups[d] = [];\n  dateGroups[d].push(r);\n}\n\nconst dates = Object.keys(dateGroups).filter(Boolean).sort();\nconst latestDate = dates[dates.length - 1];\nconst previousDate = dates.length > 1 ? dates[dates.length - 2] : null;\nconst latest = dateGroups[latestDate] || [];\nconst previous = previousDate ? (dateGroups[previousDate] || []) : [];\n\nconst highValue = latest.filter(r => Number(r.price) > threshold);\nconst averagePrice = latest.length\n  ? latest.reduce((s, r) => s + Number(r.price || 0), 0) / latest.length\n  : 0;\nconst ratingRows = latest.filter(r => Number.isFinite(Number(r.rating_rate)));\nconst averageRating = ratingRows.length\n  ? ratingRows.reduce((s, r) => s + Number(r.rating_rate || 0), 0) / ratingRows.length\n  : 0;\n\nconst categories = {};\nfor (const r of latest) {\n  const c = String(r.category || 'unknown');\n  categories[c] = (categories[c] || 0) + 1;\n}\n\nconst electronicsCount = latest.filter(\n  r => String(r.category || '').toLowerCase() === 'electronics'\n).length;\n\nconst newRecordsThisExecution = rows.filter(r => String(r.run_id) === String(currentRunId)).length;\nconst examples = highValue.slice(0, 2).map(r => r.title);\nconst productCountChange = previousDate ? latest.length - previous.length : null;\n\nconst categoryText = Object.entries(categories)\n  .sort((a,b) => b[1]-a[1])\n  .map(([k,v]) => `${k}: ${v}`)\n  .join(', ');\n\nconst historyText = previousDate\n  ? `${previousDate}: ${previous.length} products → ${latestDate}: ${latest.length} products (change ${productCountChange >= 0 ? '+' : ''}${productCountChange})`\n  : `First stored snapshot: ${latestDate} (${latest.length} products)`;\n\nconst summaryText =\n`📊 QuickMart Daily Product Analysis\nSnapshot date: ${latestDate}\nTotal products in latest snapshot: ${latest.length}\nHistorical rows stored: ${rows.length}\nNew rows inserted this execution: ${newRecordsThisExecution}\nProducts above $${threshold}: ${highValue.length}\nAverage price: $${averagePrice.toFixed(2)}\nAverage rating: ${averageRating.toFixed(2)}\nElectronics products: ${electronicsCount}\nProducts by category: ${categoryText}\nHigh-value examples: ${examples.length ? examples.join(' | ') : 'None'}\nHistorical comparison: ${historyText}`;\n\nreturn [{\n  json: {\n    error: false,\n    timestamp: new Date().toISOString(),\n    current_run_id: currentRunId,\n    current_run_date: currentRunDate,\n    snapshot_date: latestDate,\n    total_products: latest.length,\n    historical_records: rows.length,\n    new_records_this_execution: newRecordsThisExecution,\n    high_value_threshold: threshold,\n    high_value_products: highValue.length,\n    high_value_examples: examples.join(' | '),\n    average_price: Number(averagePrice.toFixed(2)),\n    average_rating: Number(averageRating.toFixed(2)),\n    electronics_count: electronicsCount,\n    category_breakdown: categoryText,\n    previous_snapshot_date: previousDate || '',\n    previous_snapshot_products: previousDate ? previous.length : 0,\n    product_count_change: productCountChange ?? 0,\n    summary_text: summaryText\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2070,
+        50
+      ],
+      "id": "989fb325-0db4-4639-98aa-cccb85e6c5c1",
+      "name": "Analyze Stored Dataset"
+    },
+    {
+      "parameters": {
+        "mode": "expression",
+        "numberOutputs": 2,
+        "output": "={{ $('CONFIG - Settings').first().json.send_gmail ? 0 : 1 }}"
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        2380,
+        -110
+      ],
+      "id": "2f4728f9-5e7f-4a6d-a905-daab4ba3adeb",
+      "name": "Gmail Enabled?"
+    },
+    {
+      "parameters": {
+        "mode": "expression",
+        "numberOutputs": 2,
+        "output": "={{ $('CONFIG - Settings').first().json.send_slack ? 0 : 1 }}"
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        2380,
+        50
+      ],
+      "id": "0584feab-5c77-40d1-a9d5-e938e66c9d9f",
+      "name": "Slack Enabled?"
+    },
+    {
+      "parameters": {
+        "mode": "expression",
+        "numberOutputs": 2,
+        "output": "={{ $('CONFIG - Settings').first().json.log_to_google_sheets ? 0 : 1 }}"
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        2380,
+        210
+      ],
+      "id": "7456f1e8-0833-40e5-a451-3f9533e80ae3",
+      "name": "Sheets Logging Enabled?"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('CONFIG - Settings').first().json.email_to }}",
+        "subject": "=QuickMart Daily Product Analysis — {{ $json.snapshot_date }}",
+        "message": "={{ $json.summary_text }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        2710,
+        -110
+      ],
+      "id": "941a6073-17d7-4e2f-a0ef-dde8355b0049",
+      "name": "Send Daily Summary via Gmail"
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "={{ $('CONFIG - Settings').first().json.slack_channel_id }}",
+          "mode": "id"
+        },
+        "text": "={{ $json.summary_text }}",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        2710,
+        50
+      ],
+      "id": "3b5554e0-b7f4-4137-9608-36ebd52b17cf",
+      "name": "Post Daily Summary to Slack"
+    },
+    {
+      "parameters": {
+        "jsCode": "const j = $json;\nreturn [{\n  json: {\n    timestamp: j.timestamp,\n    snapshot_date: j.snapshot_date,\n    total_products: j.total_products,\n    historical_records: j.historical_records,\n    new_records_this_execution: j.new_records_this_execution,\n    high_value_products: j.high_value_products,\n    average_price: j.average_price,\n    average_rating: j.average_rating,\n    electronics_count: j.electronics_count,\n    category_breakdown: j.category_breakdown,\n    previous_snapshot_date: j.previous_snapshot_date,\n    previous_snapshot_products: j.previous_snapshot_products,\n    product_count_change: j.product_count_change\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2680,
+        210
+      ],
+      "id": "74d20aa6-4b7e-453c-accb-3e997d6de0d0",
+      "name": "Prepare Google Sheets Log Row"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $('CONFIG - Settings').first().json.google_sheet_id }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ $('CONFIG - Settings').first().json.google_sheet_name }}",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2980,
+        210
+      ],
+      "id": "fa8f9917-c803-41ee-b9f9-453c7fb3ecd2",
+      "name": "Append Summary to Google Sheets"
+    },
+    {
+      "parameters": {
+        "content": "### Safe testing mode\nNotification toggles are **OFF by default** so the database workflow can be tested before external credentials are connected.\nSet the desired booleans to `true` in `CONFIG - Settings` after connecting credentials.",
+        "height": 230,
+        "width": 500,
+        "color": 1
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        3230,
+        380
+      ],
+      "id": "766d1959-8806-486d-9959-50f288009c54",
+      "name": "Notifications Disabled - OK"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "CONFIG - Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Daily 8 AM Trigger": {
+      "main": [
+        [
+          {
+            "node": "CONFIG - Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CONFIG - Settings": {
+      "main": [
+        [
+          {
+            "node": "Fetch Products API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Products API": {
+      "main": [
+        [
+          {
+            "node": "Normalize API Products",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize API Products": {
+      "main": [
+        [
+          {
+            "node": "Read Existing Today's Snapshots",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Existing Today's Snapshots": {
+      "main": [
+        [
+          {
+            "node": "Filter New Daily Snapshots",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter New Daily Snapshots": {
+      "main": [
+        [
+          {
+            "node": "New Snapshot Rows?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "New Snapshot Rows?": {
+      "main": [
+        [
+          {
+            "node": "Insert New Rows to Supabase",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No New Rows - Continue",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert New Rows to Supabase": {
+      "main": [
+        [
+          {
+            "node": "Read Stored Dataset from Supabase",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "No New Rows - Continue": {
+      "main": [
+        [
+          {
+            "node": "Read Stored Dataset from Supabase",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Stored Dataset from Supabase": {
+      "main": [
+        [
+          {
+            "node": "Analyze Stored Dataset",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze Stored Dataset": {
+      "main": [
+        [
+          {
+            "node": "Gmail Enabled?",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Slack Enabled?",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Sheets Logging Enabled?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail Enabled?": {
+      "main": [
+        [
+          {
+            "node": "Send Daily Summary via Gmail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Slack Enabled?": {
+      "main": [
+        [
+          {
+            "node": "Post Daily Summary to Slack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sheets Logging Enabled?": {
+      "main": [
+        [
+          {
+            "node": "Prepare Google Sheets Log Row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Google Sheets Log Row": {
+      "main": [
+        [
+          {
+            "node": "Append Summary to Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "e15152bf-425c-4f8f-94f4-21ddb3df88f5",
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "tags": []
+}
