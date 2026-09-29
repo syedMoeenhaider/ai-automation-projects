@@ -1,0 +1,297 @@
+{
+  "name": "Project 01 - Form Validation and AI Tag Generator",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Taskone",
+        "formDescription": "this basic Authentiction which is help to protect dat",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Name"
+            },
+            {
+              "fieldLabel": "Emali",
+              "fieldType": "email"
+            },
+            {
+              "fieldLabel": "password",
+              "fieldType": "password"
+            },
+            {
+              "fieldLabel": "Answer",
+              "fieldType": "textarea"
+            },
+            {
+              "fieldLabel": "question"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.6,
+      "position": [
+        -208,
+        32
+      ],
+      "id": "e4c213e3-a2da-46c1-83c0-c63652d7b32c",
+      "name": "On form submission",
+      "webhookId": "9c698797-9ed2-4246-8628-141cf7065c55"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "152769c6-ed05-4ccf-9fd5-2d7750a47e8f",
+              "leftValue": "={{ $json.Emali }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -32,
+        32
+      ],
+      "id": "6f0edfd3-091f-4eb9-b10e-204a445af0ba",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "3aa030c4-7d52-4c6c-995a-7d14938e698a",
+              "name": "Truested",
+              "value": true,
+              "type": "boolean"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        176,
+        -48
+      ],
+      "id": "6aa68e83-b53d-4925-a1ad-513214e6d255",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "3aa030c4-7d52-4c6c-995a-7d14938e698a",
+              "name": "Truested",
+              "value": "true",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        112,
+        160
+      ],
+      "id": "2125490e-194f-4cdb-a49b-4945942311c5",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        336,
+        48
+      ],
+      "id": "6339e007-be9c-4f77-b9e7-fb6a7bf7a690",
+      "name": "No Operation, do nothing"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        544,
+        160
+      ],
+      "id": "cef72b56-dcd8-453f-ac70-089c4c781b5e",
+      "name": "When chat message received",
+      "webhookId": "f4906bc2-cb45-479d-8354-6b4d2932a164"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-5-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        816,
+        208
+      ],
+      "id": "5751b219-69e2-4d3c-83a6-8e9841a7fa03",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "sJf0JkiwZxvSLgy1",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Analyze the following Questions and answer and provide Tages\nQUESTION{{ $json.question }}.\n\nAnswer: {{ $json.Answer }}\n",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "you are Tag Manager,youer work is to make tagd from the given question and answer provide max 4-8 tagd should bs short \n\nExample"
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        736,
+        48
+      ],
+      "id": "d0b79728-a5f5-482e-a1b2-a6b62588f3f5",
+      "name": "Basic LLM Chain"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "No Operation, do nothing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "No Operation, do nothing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "No Operation, do nothing": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "fb780bea-79a7-4f61-b36b-249818c6fb4f",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "9acc29c622c87eeb3faef4fbf76ee4f26d8b3d55f5cccccce7a20a3bfc9a3b3d"
+  },
+  "nodeGroups": [],
+  "id": "oSRTIfZxnPo437xk",
+  "tags": []
+}

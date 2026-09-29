@@ -1,0 +1,175 @@
+{
+  "name": "Project 02 - Contact Form to Google Sheets and Auto Email",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Connect Us",
+        "formDescription": "this auth verfication",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Full Nmae"
+            },
+            {
+              "fieldLabel": "Email Address",
+              "fieldType": "email"
+            },
+            {
+              "fieldLabel": "Message"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.6,
+      "position": [
+        0,
+        0
+      ],
+      "id": "172cd906-cd4d-42f2-99b6-402cd0a8d303",
+      "name": "On form submission",
+      "webhookId": "346bfc6a-6e9b-4ba6-a9bc-cd3f31d56983"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "17sGcKOwGtTpbOgNn5rPHc7dygHjDXQaI2HlsQrb8u54",
+          "mode": "list",
+          "cachedResultName": "Connect Us",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/17sGcKOwGtTpbOgNn5rPHc7dygHjDXQaI2HlsQrb8u54/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/17sGcKOwGtTpbOgNn5rPHc7dygHjDXQaI2HlsQrb8u54/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Full Nmae": "={{ $json['Full Nmae'] }}",
+            "Email Address": "={{ $json['Email Address'] }}",
+            "Message": "={{ $json.Message }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Full Nmae",
+              "displayName": "Full Nmae",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Email Address",
+              "displayName": "Email Address",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Message",
+              "displayName": "Message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        208,
+        0
+      ],
+      "id": "3f19cbee-01ef-4b99-9b1a-8eed139c2caf",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "3UMZY10cO6IOfQkz",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json['Email Address'] }}",
+        "subject": "3rd leactuer of ai automation",
+        "emailType": "text",
+        "message": "will study how to outomaically send gmail in the computer",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        416,
+        0
+      ],
+      "id": "5883d96d-7af9-43d9-aee0-0a27ec155df2",
+      "name": "Send a message",
+      "webhookId": "02933525-07a8-41c1-8da4-b64008e9e44d",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "J5SGuz0ndYeYbbeG",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "81973c22-33ba-43b1-9795-7ed576083290",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "9acc29c622c87eeb3faef4fbf76ee4f26d8b3d55f5cccccce7a20a3bfc9a3b3d"
+  },
+  "nodeGroups": [],
+  "id": "nsCKRTzY22FA3x1c",
+  "tags": []
+}
