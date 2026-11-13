@@ -1,0 +1,466 @@
+{
+ "active": false,
+ "connections": {
+  "Call Report Webhook": {
+   "main": [
+    [
+     {
+      "index": 0,
+      "node": "Parse Call Outcome",
+      "type": "main"
+     }
+    ]
+   ]
+  },
+  "Filter New Leads": {
+   "main": [
+    [
+     {
+      "index": 0,
+      "node": "Loop Over Items",
+      "type": "main"
+     }
+    ],
+    []
+   ]
+  },
+  "Get New Leads": {
+   "main": [
+    [
+     {
+      "index": 0,
+      "node": "Filter New Leads",
+      "type": "main"
+     }
+    ]
+   ]
+  },
+  "Loop Over Items": {
+   "main": [
+    [
+     {
+      "index": 0,
+      "node": "Vapi Outbound Call",
+      "type": "main"
+     }
+    ],
+    [
+     {
+      "index": 0,
+      "node": "All Calls Queued",
+      "type": "main"
+     }
+    ]
+   ]
+  },
+  "Parse Call Outcome": {
+   "main": [
+    [
+     {
+      "index": 0,
+      "node": "Update Call Log",
+      "type": "main"
+     }
+    ]
+   ]
+  },
+  "Schedule Trigger": {
+   "main": [
+    [
+     {
+      "index": 0,
+      "node": "Get New Leads",
+      "type": "main"
+     }
+    ]
+   ]
+  },
+  "Send Visit Details": {
+   "main": [
+    [
+     {
+      "index": 0,
+      "node": "Notify Team",
+      "type": "main"
+     }
+    ]
+   ]
+  },
+  "Set Call Logged": {
+   "main": [
+    [
+     {
+      "index": 0,
+      "node": "Loop Over Items",
+      "type": "main"
+     }
+    ]
+   ]
+  },
+  "Update Call Log": {
+   "main": [
+    [
+     {
+      "index": 0,
+      "node": "Visit Booked?",
+      "type": "main"
+     }
+    ]
+   ]
+  },
+  "Vapi Outbound Call": {
+   "main": [
+    [
+     {
+      "index": 0,
+      "node": "Set Call Logged",
+      "type": "main"
+     }
+    ]
+   ]
+  },
+  "Visit Booked?": {
+   "main": [
+    [
+     {
+      "index": 0,
+      "node": "Send Visit Details",
+      "type": "main"
+     }
+    ],
+    [
+     {
+      "index": 0,
+      "node": "Notify Team",
+      "type": "main"
+     }
+    ]
+   ]
+  }
+ },
+ "name": "04 - Real Estate Calling Agent",
+ "nodes": [
+  {
+   "id": "40000000-0000-4000-8000-000000000001",
+   "name": "Schedule Trigger",
+   "parameters": {
+    "rule": {
+     "interval": [
+      {
+       "expression": "0 11 * * *",
+       "field": "cronExpression"
+      }
+     ]
+    }
+   },
+   "position": [
+    0,
+    0
+   ],
+   "type": "n8n-nodes-base.scheduleTrigger",
+   "typeVersion": 1.2
+  },
+  {
+   "credentials": {
+    "googleSheets": {
+     "id": "YOUR_GOOGLE_SHEETS_CREDENTIAL_ID",
+     "name": "Google Sheets"
+    }
+   },
+   "id": "40000000-0000-4000-8000-000000000002",
+   "name": "Get New Leads",
+   "parameters": {
+    "documentId": "YOUR_GOOGLE_SHEET_ID",
+    "operation": "read",
+    "options": {},
+    "sheetName": "Leads"
+   },
+   "position": [
+    240,
+    0
+   ],
+   "type": "n8n-nodes-base.googleSheets",
+   "typeVersion": 4
+  },
+  {
+   "id": "40000000-0000-4000-8000-000000000003",
+   "name": "Filter New Leads",
+   "parameters": {
+    "conditions": {
+     "combinator": "and",
+     "conditions": [
+      {
+       "id": "cond-status",
+       "leftValue": "={{ $json.status }}",
+       "operator": {
+        "operation": "equals",
+        "type": "string"
+       },
+       "rightValue": "new"
+      }
+     ],
+     "options": {
+      "caseSensitive": true,
+      "leftValue": "",
+      "typeValidation": "loose"
+     }
+    },
+    "options": {
+     "looseTypeValidation": true
+    }
+   },
+   "position": [
+    480,
+    0
+   ],
+   "type": "n8n-nodes-base.if",
+   "typeVersion": 2.2
+  },
+  {
+   "id": "40000000-0000-4000-8000-000000000004",
+   "name": "Loop Over Items",
+   "parameters": {
+    "batchSize": 1,
+    "options": {}
+   },
+   "position": [
+    720,
+    0
+   ],
+   "type": "n8n-nodes-base.splitInBatches",
+   "typeVersion": 3
+  },
+  {
+   "credentials": {
+    "httpHeaderAuth": {
+     "id": "YOUR_VAPI_API_KEY_CREDENTIAL_ID",
+     "name": "Vapi API Key"
+    }
+   },
+   "id": "40000000-0000-4000-8000-000000000005",
+   "name": "Vapi Outbound Call",
+   "parameters": {
+    "authentication": "genericCredentialType",
+    "contentType": "json",
+    "genericAuthType": "httpHeaderAuth",
+    "jsonBody": "={\"assistantId\": \"YOUR_VAPI_ASSISTANT_ID\", \"phoneNumberId\": \"YOUR_VAPI_PHONE_NUMBER_ID\", \"customer\": {\"number\": \"{{ $json.phone }}\", \"name\": \"{{ $json.name }}\"}}",
+    "method": "POST",
+    "options": {},
+    "sendBody": true,
+    "specifyBody": "json",
+    "url": "https://api.vapi.ai/call"
+   },
+   "position": [
+    960,
+    0
+   ],
+   "type": "n8n-nodes-base.httpRequest",
+   "typeVersion": 4.2
+  },
+  {
+   "id": "40000000-0000-4000-8000-000000000006",
+   "name": "Set Call Logged",
+   "parameters": {
+    "assignments": {
+     "assignments": [
+      {
+       "id": "a1",
+       "name": "phone",
+       "type": "string",
+       "value": "={{ $json.phone }}"
+      },
+      {
+       "id": "a2",
+       "name": "callStatus",
+       "type": "string",
+       "value": "called"
+      },
+      {
+       "id": "a3",
+       "name": "calledAt",
+       "type": "string",
+       "value": "={{ $now.toISO() }}"
+      }
+     ]
+    },
+    "options": {}
+   },
+   "position": [
+    1200,
+    0
+   ],
+   "type": "n8n-nodes-base.set",
+   "typeVersion": 3.4
+  },
+  {
+   "id": "40000000-0000-4000-8000-000000000007",
+   "name": "All Calls Queued",
+   "parameters": {
+    "assignments": {
+     "assignments": [
+      {
+       "id": "a1",
+       "name": "summary",
+       "type": "string",
+       "value": "All new leads queued for Vapi calls"
+      }
+     ]
+    },
+    "options": {}
+   },
+   "position": [
+    720,
+    240
+   ],
+   "type": "n8n-nodes-base.set",
+   "typeVersion": 3.4
+  },
+  {
+   "id": "40000000-0000-4000-8000-000000000008",
+   "name": "Call Report Webhook",
+   "parameters": {
+    "httpMethod": "POST",
+    "options": {},
+    "path": "vapi-call-report",
+    "responseMode": "onReceived"
+   },
+   "position": [
+    0,
+    440
+   ],
+   "type": "n8n-nodes-base.webhook",
+   "typeVersion": 2
+  },
+  {
+   "id": "40000000-0000-4000-8000-000000000009",
+   "name": "Parse Call Outcome",
+   "parameters": {
+    "jsCode": "// Parse Vapi end-of-call-report\nconst body = $input.first().json;\nconst msg = body.message || body;\nconst data = (msg.analysis && msg.analysis.structuredData) || {};\nconst outcome = data.outcome || 'unknown';\nconst summary = (msg.analysis && msg.analysis.summary) || '';\nconst endedReason = msg.endedReason || '';\nconst phone = (msg.customer && msg.customer.number) || (msg.phoneNumber && msg.phoneNumber.number) || '';\nconst email = (msg.customer && msg.customer.email) || '';\nconst visitDate = data.visitDate || '';\nconst visitTime = data.visitTime || '';\nreturn [{ json: { phone, email, outcome, summary, endedReason, visitDate, visitTime, durationSeconds: msg.durationSeconds || 0, cost: msg.cost || 0 } }];",
+    "mode": "runOnceForAllItems"
+   },
+   "position": [
+    240,
+    440
+   ],
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2
+  },
+  {
+   "credentials": {
+    "googleSheets": {
+     "id": "YOUR_GOOGLE_SHEETS_CREDENTIAL_ID",
+     "name": "Google Sheets"
+    }
+   },
+   "id": "40000000-0000-4000-8000-000000000010",
+   "name": "Update Call Log",
+   "parameters": {
+    "columns": {
+     "mappingMode": "defineBelow",
+     "matchingColumns": [
+      "phone"
+     ],
+     "value": {
+      "outcome": "={{ $json.outcome }}",
+      "phone": "={{ $json.phone }}",
+      "summary": "={{ $json.summary }}",
+      "visitDate": "={{ $json.visitDate }}",
+      "visitTime": "={{ $json.visitTime }}"
+     }
+    },
+    "documentId": "YOUR_GOOGLE_SHEET_ID",
+    "operation": "update",
+    "options": {},
+    "sheetName": "CallLog"
+   },
+   "position": [
+    480,
+    440
+   ],
+   "type": "n8n-nodes-base.googleSheets",
+   "typeVersion": 4
+  },
+  {
+   "id": "40000000-0000-4000-8000-000000000011",
+   "name": "Visit Booked?",
+   "parameters": {
+    "conditions": {
+     "combinator": "and",
+     "conditions": [
+      {
+       "id": "cond-booked",
+       "leftValue": "={{ $json.outcome }}",
+       "operator": {
+        "operation": "equals",
+        "type": "string"
+       },
+       "rightValue": "visit_booked"
+      }
+     ],
+     "options": {
+      "caseSensitive": true,
+      "leftValue": "",
+      "typeValidation": "loose"
+     }
+    },
+    "options": {
+     "looseTypeValidation": true
+    }
+   },
+   "position": [
+    720,
+    440
+   ],
+   "type": "n8n-nodes-base.if",
+   "typeVersion": 2.2
+  },
+  {
+   "credentials": {
+    "gmailOAuth2": {
+     "id": "YOUR_GMAIL_CREDENTIAL_ID",
+     "name": "Gmail"
+    }
+   },
+   "id": "40000000-0000-4000-8000-000000000012",
+   "name": "Send Visit Details",
+   "parameters": {
+    "emailType": "text",
+    "message": "=Hi, thank you for speaking with us. Your site visit is booked for {{ $json.visitDate }} at {{ $json.visitTime }}. Our agent will meet you at the property and confirm the final details. If you need to reschedule, just reply to this email. Thank you - Demo Realty.",
+    "options": {},
+    "sendTo": "={{ $json.email }}",
+    "subject": "Your site visit is booked - Demo Realty"
+   },
+   "position": [
+    960,
+    360
+   ],
+   "type": "n8n-nodes-base.gmail",
+   "typeVersion": 2.1
+  },
+  {
+   "credentials": {
+    "slackApi": {
+     "id": "YOUR_SLACK_CREDENTIAL_ID",
+     "name": "Slack"
+    }
+   },
+   "id": "40000000-0000-4000-8000-000000000013",
+   "name": "Notify Team",
+   "parameters": {
+    "channel": "#real-estate-calls",
+    "otherOptions": {},
+    "text": "=Call finished: {{ $json.phone }} - outcome: {{ $json.outcome }}. {{ $json.summary }}"
+   },
+   "position": [
+    960,
+    540
+   ],
+   "type": "n8n-nodes-base.slack",
+   "typeVersion": 2.3
+  }
+ ],
+ "pinData": {},
+ "settings": {
+  "executionOrder": "v1"
+ }
+}
