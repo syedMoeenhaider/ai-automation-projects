@@ -335,7 +335,7 @@
    "id": "40000000-0000-4000-8000-000000000009",
    "name": "Parse Call Outcome",
    "parameters": {
-    "jsCode": "// Parse Vapi end-of-call-report\nconst body = $input.first().json;\nconst msg = body.message || body;\nconst data = (msg.analysis && msg.analysis.structuredData) || {};\nconst outcome = data.outcome || 'unknown';\nconst summary = (msg.analysis && msg.analysis.summary) || '';\nconst endedReason = msg.endedReason || '';\nconst phone = (msg.customer && msg.customer.number) || (msg.phoneNumber && msg.phoneNumber.number) || '';\nconst email = (msg.customer && msg.customer.email) || '';\nconst visitDate = data.visitDate || '';\nconst visitTime = data.visitTime || '';\nreturn [{ json: { phone, email, outcome, summary, endedReason, visitDate, visitTime, durationSeconds: msg.durationSeconds || 0, cost: msg.cost || 0 } }];",
+    "jsCode": "// Parse Vapi end-of-call-report\nconst body = $input.first().json;\nconst payload = body.body || body;\nconst msg = payload.message || payload;\nconst data = (msg.analysis && msg.analysis.structuredData) || {};\nconst outcome = data.outcome || 'unknown';\nconst summary = (msg.analysis && msg.analysis.summary) || '';\nconst endedReason = msg.endedReason || '';\nconst phone = (msg.customer && msg.customer.number) || (msg.phoneNumber && msg.phoneNumber.number) || '';\nconst email = (msg.customer && msg.customer.email) || '';\nconst visitDate = data.visitDate || '';\nconst visitTime = data.visitTime || '';\nreturn [{ json: { phone, email, outcome, summary, endedReason, visitDate, visitTime, durationSeconds: msg.durationSeconds || 0, cost: msg.cost || 0 } }];",
     "mode": "runOnceForAllItems"
    },
    "position": [
