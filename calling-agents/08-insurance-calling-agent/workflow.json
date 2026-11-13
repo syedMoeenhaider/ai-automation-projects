@@ -40,14 +40,14 @@
     [
      {
       "index": 0,
-      "node": "Vapi Outbound Call",
+      "node": "All Calls Queued",
       "type": "main"
      }
     ],
     [
      {
       "index": 0,
-      "node": "All Calls Queued",
+      "node": "Vapi Outbound Call",
       "type": "main"
      }
     ]
@@ -202,8 +202,8 @@
        "id": "cond-date",
        "leftValue": "={{ $json.renewalDate }}",
        "operator": {
-        "operation": "lte",
-        "type": "date"
+        "operation": "beforeOrEquals",
+        "type": "dateTime"
        },
        "rightValue": "={{ $now.plus({ days: 7 }).toISODate() }}"
       }

@@ -1,1 +1,126 @@
-{"endCallFunctionEnabled":true,"endCallMessage":"Shukriya, aapka order confirm ho gaya hai. Allah Hafiz.","firstMessage":"Assalam-o-Alaikum, main Demo Restaurant se Ayesha bol rahi hoon. Aap ne abhi abhi hamare restaurant se khana order kiya tha — kya main aapka order confirm kar sakti hoon?","maxDurationSeconds":240,"model":{"messages":[{"content":"You are Ayesha, a warm and polite voice calling agent for Demo Restaurant (Pakistan). You call customers right after they place a food order to confirm the order, verify the delivery address, and give the delivery ETA. Speak in the customer's preferred language — start in Urdu, switch to English if the customer replies in English. Keep the call short, under 4 minutes.\n\nRules:\n1. First greet, confirm you are speaking to the customer by first name only.\n2. Read back the ordered items one by one, slowly and clearly, then state the total amount. Use the confirm_order tool once the customer confirms everything is correct.\n3. Verify the delivery address: read it back and ask for the house/flat number, street, and a nearby landmark. Correct the address with the modify_order tool if the customer changes anything.\n4. State the delivery ETA clearly (use the check_eta tool if the ETA is not already in context). Tell the customer the rider will call when nearby.\n5. Offer a small modification or cancellation ONLY within 5 minutes of the order being placed. After 5 minutes, politely explain the order is already being prepared and cannot be changed. Use modify_order or cancel_order to record the change.\n6. If the customer reports a wrong item, a wrong address, or an allergy concern, fix it with modify_order and read the corrected order back.\n7. Never ask for card details, bank details, PIN, OTP, or password. Payment is cash on delivery or already paid online — never collect payment details on the call.\n8. If the customer is unhappy or the issue is complex, stay calm, apologize briefly, and offer a human agent.\n9. End every call with a one-line summary: what was confirmed, the total, and the ETA.","role":"system"}],"model":"gpt-4o-mini","provider":"openai","temperature":0.3},"name":"Restaurant Order Confirmation Agent","recordingEnabled":true,"tools":[{"function":{"description":"Record that the customer confirmed the order exactly as read back, including items and total.","name":"confirm_order","parameters":{"properties":{"items":{"description":"The ordered items as read back and confirmed","type":"string"},"total":{"description":"Total order amount confirmed by the customer","type":"string"}},"required":["items","total"],"type":"object"}},"server":{"url":"https://YOUR_N8N_URL/webhook/vapi-tool-confirm-order"},"type":"function"},{"function":{"description":"Record a small change to the order, such as a different item, quantity, or corrected delivery address.","name":"modify_order","parameters":{"properties":{"change":{"description":"What the customer wants changed","type":"string"},"field":{"description":"What is being changed","enum":["items","address","quantity"],"type":"string"}},"required":["change","field"],"type":"object"}},"server":{"url":"https://YOUR_N8N_URL/webhook/vapi-tool-modify-order"},"type":"function"},{"function":{"description":"Cancel the order when the customer asks within 5 minutes of placing it.","name":"cancel_order","parameters":{"properties":{"reason":{"description":"Short reason the customer gave for cancelling","type":"string"}},"required":["reason"],"type":"object"}},"server":{"url":"https://YOUR_N8N_URL/webhook/vapi-tool-cancel-order"},"type":"function"},{"function":{"description":"Fetch the current delivery ETA for the order when the customer asks how long it will take.","name":"check_eta","parameters":{"properties":{},"type":"object"}},"server":{"url":"https://YOUR_N8N_URL/webhook/vapi-tool-check-eta"},"type":"function"}],"transcriber":{"language":"ur","model":"nova-3","provider":"deepgram"},"voice":{"provider":"azure","voiceId":"ur-PK-AsadNeural"},"voicemailMessage":"Assalam-o-Alaikum, Demo Restaurant se aapke order ki confirmation ke liye call thi. Aap humse dobara rabta kar sakte hain. Shukriya."}
+{
+ "endCallFunctionEnabled": true,
+ "endCallMessage": "Shukriya, aapka order confirm ho gaya hai. Allah Hafiz.",
+ "firstMessage": "Assalam-o-Alaikum, main Demo Restaurant se Ayesha bol rahi hoon. Aap ne abhi abhi hamare restaurant se khana order kiya tha \u2014 kya main aapka order confirm kar sakti hoon?",
+ "maxDurationSeconds": 240,
+ "model": {
+  "messages": [
+   {
+    "content": "You are Ayesha, a warm and polite voice calling agent for Demo Restaurant (Pakistan). You call customers right after they place a food order to confirm the order, verify the delivery address, and give the delivery ETA. Speak in the customer's preferred language \u2014 start in Urdu, switch to English if the customer replies in English. Keep the call short, under 4 minutes.\n\nRules:\n1. First greet, confirm you are speaking to the customer by first name only.\n2. Read back the ordered items one by one, slowly and clearly, then state the total amount. Use the confirm_order tool once the customer confirms everything is correct.\n3. Verify the delivery address: read it back and ask for the house/flat number, street, and a nearby landmark. Correct the address with the modify_order tool if the customer changes anything.\n4. State the delivery ETA clearly (use the check_eta tool if the ETA is not already in context). Tell the customer the rider will call when nearby.\n5. Offer a small modification or cancellation ONLY within 5 minutes of the order being placed. After 5 minutes, politely explain the order is already being prepared and cannot be changed. Use modify_order or cancel_order to record the change.\n6. If the customer reports a wrong item, a wrong address, or an allergy concern, fix it with modify_order and read the corrected order back.\n7. Never ask for card details, bank details, PIN, OTP, or password. Payment is cash on delivery or already paid online \u2014 never collect payment details on the call.\n8. If the customer is unhappy or the issue is complex, stay calm, apologize briefly, and offer a human agent.\n9. End every call with a one-line summary: what was confirmed, the total, and the ETA.",
+    "role": "system"
+   }
+  ],
+  "model": "gpt-4o-mini",
+  "provider": "openai",
+  "temperature": 0.3,
+  "tools": [
+   {
+    "function": {
+     "description": "Record that the customer confirmed the order exactly as read back, including items and total.",
+     "name": "confirm_order",
+     "parameters": {
+      "properties": {
+       "items": {
+        "description": "The ordered items as read back and confirmed",
+        "type": "string"
+       },
+       "total": {
+        "description": "Total order amount confirmed by the customer",
+        "type": "string"
+       }
+      },
+      "required": [
+       "items",
+       "total"
+      ],
+      "type": "object"
+     }
+    },
+    "server": {
+     "url": "https://example.com/webhook/vapi-tool-confirm-order"
+    },
+    "type": "function"
+   },
+   {
+    "function": {
+     "description": "Record a small change to the order, such as a different item, quantity, or corrected delivery address.",
+     "name": "modify_order",
+     "parameters": {
+      "properties": {
+       "change": {
+        "description": "What the customer wants changed",
+        "type": "string"
+       },
+       "field": {
+        "description": "What is being changed",
+        "enum": [
+         "items",
+         "address",
+         "quantity"
+        ],
+        "type": "string"
+       }
+      },
+      "required": [
+       "change",
+       "field"
+      ],
+      "type": "object"
+     }
+    },
+    "server": {
+     "url": "https://example.com/webhook/vapi-tool-modify-order"
+    },
+    "type": "function"
+   },
+   {
+    "function": {
+     "description": "Cancel the order when the customer asks within 5 minutes of placing it.",
+     "name": "cancel_order",
+     "parameters": {
+      "properties": {
+       "reason": {
+        "description": "Short reason the customer gave for cancelling",
+        "type": "string"
+       }
+      },
+      "required": [
+       "reason"
+      ],
+      "type": "object"
+     }
+    },
+    "server": {
+     "url": "https://example.com/webhook/vapi-tool-cancel-order"
+    },
+    "type": "function"
+   },
+   {
+    "function": {
+     "description": "Fetch the current delivery ETA for the order when the customer asks how long it will take.",
+     "name": "check_eta",
+     "parameters": {
+      "properties": {},
+      "type": "object"
+     }
+    },
+    "server": {
+     "url": "https://example.com/webhook/vapi-tool-check-eta"
+    },
+    "type": "function"
+   }
+  ]
+ },
+ "name": "Restaurant Order Confirmation Agent",
+ "recordingEnabled": true,
+ "transcriber": {
+  "language": "ur",
+  "model": "nova-3",
+  "provider": "deepgram"
+ },
+ "voice": {
+  "provider": "azure",
+  "voiceId": "ur-PK-AsadNeural"
+ },
+ "voicemailMessage": "Assalam-o-Alaikum, Demo Restaurant se aapke order ki confirmation ke liye call thi. Aap humse dobara rabta kar sakte hain. Shukriya."
+}

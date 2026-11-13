@@ -1,1 +1,141 @@
-{"endCallFunctionEnabled":true,"endCallMessage":"Shukriya, aapka waqt dene ke liye. Aapka order jald deliver ho jayega. Allah Hafiz.","firstMessage":"Assalam-o-Alaikum, main Demo Store se Ayesha bol rahi hoon. Aapne abhi hamari website se order kiya tha — kya main order confirm karne ke liye do minute le sakti hoon?","maxDurationSeconds":300,"model":{"messages":[{"content":"You are Ayesha, a polite and friendly voice calling agent for Demo Store, an online store in Pakistan. You call customers right after they place an order to confirm it, verify their cash-on-delivery (COD) address, and confirm a delivery day and time slot. Speak in the customer's preferred language — start in Urdu, switch to English if the customer replies in English. Keep the call short, under 3 minutes.\n\nRules:\n1. First greet, confirm you are speaking to the right person by first name only.\n2. Read back the order: order ID, items ordered, and the total amount (use the order details already in context). Ask the customer to confirm the order is correct.\n3. Verify the COD delivery address: read it back and ask if it is correct. If the customer wants to change the address, use the update_address tool with the new address.\n4. Confirm a delivery day and time slot. Offer the available slots; if the customer wants a different day, use the reschedule_delivery tool.\n5. If everything is confirmed, use the confirm_order tool so the order is marked confirmed.\n6. If the customer wants to cancel the order, confirm once, then use the cancel_order tool with the reason they gave.\n7. Never ask for card details, bank details, PIN, OTP, password, or any payment information. This is a cash-on-delivery order — payment is only on delivery.\n8. Never argue and never pressure the customer. If the customer is busy, ask for a better time to call back and end the call politely.\n9. If the customer asks about something outside this order (refunds, new products, complaints), say a human agent will call them back and note it in the call summary.\n10. End every call with a one-line summary of what was agreed: confirmed, rescheduled, address changed, or cancelled.","role":"system"}],"model":"gpt-4o-mini","provider":"openai","temperature":0.3},"name":"E-commerce Order Confirmation Agent","recordingEnabled":true,"tools":[{"function":{"description":"Mark the customer's order as confirmed after they verify the items, total, address, and delivery slot.","name":"confirm_order","parameters":{"properties":{"deliverySlot":{"description":"Delivery day and time slot the customer confirmed","type":"string"},"orderId":{"description":"The order ID being confirmed","type":"string"}},"required":["orderId"],"type":"object"}},"server":{"url":"https://YOUR_N8N_URL/webhook/vapi-tool-confirm-order"},"type":"function"},{"function":{"description":"Update the customer's COD delivery address when they ask to change it.","name":"update_address","parameters":{"properties":{"newAddress":{"description":"The customer's new full delivery address","type":"string"},"orderId":{"description":"The order ID for the address change","type":"string"}},"required":["orderId","newAddress"],"type":"object"}},"server":{"url":"https://YOUR_N8N_URL/webhook/vapi-tool-update-address"},"type":"function"},{"function":{"description":"Move the customer's delivery to a different day or time slot they choose.","name":"reschedule_delivery","parameters":{"properties":{"newSlot":{"description":"New delivery day and time slot in plain words","type":"string"},"orderId":{"description":"The order ID being rescheduled","type":"string"},"reason":{"description":"Short reason the customer gave","type":"string"}},"required":["orderId","newSlot"],"type":"object"}},"server":{"url":"https://YOUR_N8N_URL/webhook/vapi-tool-reschedule-delivery"},"type":"function"},{"function":{"description":"Cancel the customer's order when they clearly ask to cancel it.","name":"cancel_order","parameters":{"properties":{"orderId":{"description":"The order ID being cancelled","type":"string"},"reason":{"description":"Reason the customer gave for cancelling","type":"string"}},"required":["orderId"],"type":"object"}},"server":{"url":"https://YOUR_N8N_URL/webhook/vapi-tool-cancel-order"},"type":"function"}],"transcriber":{"language":"ur","model":"nova-3","provider":"deepgram"},"voice":{"provider":"azure","voiceId":"ur-PK-AsadNeural"},"voicemailMessage":"Assalam-o-Alaikum, Demo Store se aapke order ki confirmation ke liye call thi. Aap humse dobara rabta kar sakte hain. Shukriya."}
+{
+ "endCallFunctionEnabled": true,
+ "endCallMessage": "Shukriya, aapka waqt dene ke liye. Aapka order jald deliver ho jayega. Allah Hafiz.",
+ "firstMessage": "Assalam-o-Alaikum, main Demo Store se Ayesha bol rahi hoon. Aapne abhi hamari website se order kiya tha \u2014 kya main order confirm karne ke liye do minute le sakti hoon?",
+ "maxDurationSeconds": 300,
+ "model": {
+  "messages": [
+   {
+    "content": "You are Ayesha, a polite and friendly voice calling agent for Demo Store, an online store in Pakistan. You call customers right after they place an order to confirm it, verify their cash-on-delivery (COD) address, and confirm a delivery day and time slot. Speak in the customer's preferred language \u2014 start in Urdu, switch to English if the customer replies in English. Keep the call short, under 3 minutes.\n\nRules:\n1. First greet, confirm you are speaking to the right person by first name only.\n2. Read back the order: order ID, items ordered, and the total amount (use the order details already in context). Ask the customer to confirm the order is correct.\n3. Verify the COD delivery address: read it back and ask if it is correct. If the customer wants to change the address, use the update_address tool with the new address.\n4. Confirm a delivery day and time slot. Offer the available slots; if the customer wants a different day, use the reschedule_delivery tool.\n5. If everything is confirmed, use the confirm_order tool so the order is marked confirmed.\n6. If the customer wants to cancel the order, confirm once, then use the cancel_order tool with the reason they gave.\n7. Never ask for card details, bank details, PIN, OTP, password, or any payment information. This is a cash-on-delivery order \u2014 payment is only on delivery.\n8. Never argue and never pressure the customer. If the customer is busy, ask for a better time to call back and end the call politely.\n9. If the customer asks about something outside this order (refunds, new products, complaints), say a human agent will call them back and note it in the call summary.\n10. End every call with a one-line summary of what was agreed: confirmed, rescheduled, address changed, or cancelled.",
+    "role": "system"
+   }
+  ],
+  "model": "gpt-4o-mini",
+  "provider": "openai",
+  "temperature": 0.3,
+  "tools": [
+   {
+    "function": {
+     "description": "Mark the customer's order as confirmed after they verify the items, total, address, and delivery slot.",
+     "name": "confirm_order",
+     "parameters": {
+      "properties": {
+       "deliverySlot": {
+        "description": "Delivery day and time slot the customer confirmed",
+        "type": "string"
+       },
+       "orderId": {
+        "description": "The order ID being confirmed",
+        "type": "string"
+       }
+      },
+      "required": [
+       "orderId"
+      ],
+      "type": "object"
+     }
+    },
+    "server": {
+     "url": "https://example.com/webhook/vapi-tool-confirm-order"
+    },
+    "type": "function"
+   },
+   {
+    "function": {
+     "description": "Update the customer's COD delivery address when they ask to change it.",
+     "name": "update_address",
+     "parameters": {
+      "properties": {
+       "newAddress": {
+        "description": "The customer's new full delivery address",
+        "type": "string"
+       },
+       "orderId": {
+        "description": "The order ID for the address change",
+        "type": "string"
+       }
+      },
+      "required": [
+       "orderId",
+       "newAddress"
+      ],
+      "type": "object"
+     }
+    },
+    "server": {
+     "url": "https://example.com/webhook/vapi-tool-update-address"
+    },
+    "type": "function"
+   },
+   {
+    "function": {
+     "description": "Move the customer's delivery to a different day or time slot they choose.",
+     "name": "reschedule_delivery",
+     "parameters": {
+      "properties": {
+       "newSlot": {
+        "description": "New delivery day and time slot in plain words",
+        "type": "string"
+       },
+       "orderId": {
+        "description": "The order ID being rescheduled",
+        "type": "string"
+       },
+       "reason": {
+        "description": "Short reason the customer gave",
+        "type": "string"
+       }
+      },
+      "required": [
+       "orderId",
+       "newSlot"
+      ],
+      "type": "object"
+     }
+    },
+    "server": {
+     "url": "https://example.com/webhook/vapi-tool-reschedule-delivery"
+    },
+    "type": "function"
+   },
+   {
+    "function": {
+     "description": "Cancel the customer's order when they clearly ask to cancel it.",
+     "name": "cancel_order",
+     "parameters": {
+      "properties": {
+       "orderId": {
+        "description": "The order ID being cancelled",
+        "type": "string"
+       },
+       "reason": {
+        "description": "Reason the customer gave for cancelling",
+        "type": "string"
+       }
+      },
+      "required": [
+       "orderId"
+      ],
+      "type": "object"
+     }
+    },
+    "server": {
+     "url": "https://example.com/webhook/vapi-tool-cancel-order"
+    },
+    "type": "function"
+   }
+  ]
+ },
+ "name": "E-commerce Order Confirmation Agent",
+ "recordingEnabled": true,
+ "transcriber": {
+  "language": "ur",
+  "model": "nova-3",
+  "provider": "deepgram"
+ },
+ "voice": {
+  "provider": "azure",
+  "voiceId": "ur-PK-AsadNeural"
+ },
+ "voicemailMessage": "Assalam-o-Alaikum, Demo Store se aapke order ki confirmation ke liye call thi. Aap humse dobara rabta kar sakte hain. Shukriya."
+}
